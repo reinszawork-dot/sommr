@@ -11,6 +11,32 @@ import { classifyEvent } from '@/server/events/classify';
 import { assignCity, isExpired } from '@/server/events/importer';
 import { CATEGORY_SEED } from '@/server/seed-data';
 import { buildIcs } from '@/lib/ics';
+import { parseGeoapify } from '@/server/places/osm';
+import { categorise } from '@/server/places/service';
+
+describe('Geoapify places', () => {
+  const braai = [['amenity=bbq', 'leisure.picnic.bbq'], ['leisure=picnic_site', 'leisure.picnic.picnic_site']] as [string, string][];
+  it('keeps the OSM id and tags so places categorise like Overpass ones', () => {
+    const [el] = parseGeoapify(
+      { features: [{ properties: { place_id: 'x1', name: 'Fountains Valley', lat: -25.77, lon: 28.2, categories: ['leisure.picnic.picnic_site'], suburb: 'Groenkloof', datasource: { raw: { osm_type: 'w', osm_id: 42, leisure: 'picnic_site' } } } }] },
+      braai,
+    );
+    expect(el.sourceId).toBe('way/42');
+    expect(el.tags['addr:suburb']).toBe('Groenkloof');
+    expect(categorise(el, [{ slug: 'braai', filters: [{ key: 'leisure', values: ['picnic_site'] }] }])).toBe('braai');
+  });
+  it('fills the tag from the category when raw tags are missing, and skips unnamed places', () => {
+    const els = parseGeoapify(
+      { features: [
+        { properties: { place_id: 'p9', name: 'Braai area', lat: 0, lon: 0, categories: ['leisure.picnic.bbq'] } },
+        { properties: { place_id: 'p10', lat: 0, lon: 0, categories: ['leisure.picnic.bbq'] } },
+      ] },
+      braai,
+    );
+    expect(els).toHaveLength(1);
+    expect(els[0]).toMatchObject({ sourceId: 'geoapify/p9', tags: { amenity: 'bbq' } });
+  });
+});
 
 const eventCategories = CATEGORY_SEED.filter((c) => c.kind === 'event').map((c) => ({ slug: c.slug, keywords: c.keywords ?? [] }));
 

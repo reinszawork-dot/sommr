@@ -29,6 +29,8 @@ export const env = {
   TICKETMASTER_API_KEY: str('TICKETMASTER_API_KEY'),
   QUICKET_API_KEY: str('QUICKET_API_KEY'),
 
+  // Places: Geoapify (OSM data, keyed, reliable) when set, else the public Overpass servers
+  GEOAPIFY_API_KEY: str('GEOAPIFY_API_KEY'),
   // Places, geocoding, weather (all keyless, open data)
   OVERPASS_URLS: (str('OVERPASS_URLS') ||
     'https://overpass-api.de/api/interpreter,https://overpass.private.coffee/api/interpreter,https://overpass.kumi.systems/api/interpreter')

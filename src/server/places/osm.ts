@@ -100,6 +100,94 @@ async function fetchOverpass(query: string): Promise<OsmElement[]> {
   throw lastError ?? new Error('No Overpass endpoint configured');
 }
 
+// ───────────────────────────── Geoapify (keyed, OSM-based) ─────────────────────────────
+
+/** OSM tag → Geoapify category. Only keys confirmed in Geoapify's docs: an unknown key fails the whole request. */
+const GEOAPIFY_CATEGORIES: Record<string, string> = {
+  'natural=beach': 'beach',
+  'amenity=restaurant': 'catering.restaurant',
+  'amenity=cafe': 'catering.cafe',
+  'amenity=bbq': 'leisure.picnic.bbq',
+  'leisure=picnic_site': 'leisure.picnic.picnic_site',
+  'amenity=marketplace': 'commercial.marketplace',
+  'tourism=viewpoint': 'tourism.attraction.viewpoint',
+  'leisure=park': 'leisure.park',
+  'leisure=nature_reserve': 'leisure.park.nature_reserve',
+  'leisure=garden': 'leisure.park.garden',
+  'amenity=cinema': 'entertainment.cinema',
+  'amenity=theatre': 'entertainment.culture.theatre',
+  'amenity=arts_centre': 'entertainment.culture.arts_centre',
+  'amenity=nightclub': 'adult.nightclub',
+  'leisure=water_park': 'entertainment.water_park',
+  'leisure=bowling_alley': 'entertainment.bowling_alley',
+  'tourism=theme_park': 'entertainment.theme_park',
+};
+
+interface GeoapifyFeature {
+  properties: {
+    place_id: string;
+    name?: string;
+    lat: number;
+    lon: number;
+    categories?: string[];
+    street?: string;
+    housenumber?: string;
+    suburb?: string;
+    city?: string;
+    website?: string;
+    opening_hours?: string;
+    contact?: { phone?: string };
+    datasource?: { raw?: Record<string, string | number> };
+  };
+}
+
+const OSM_TYPES: Record<string, string> = { n: 'node', w: 'way', r: 'relation', node: 'node', way: 'way', relation: 'relation' };
+
+/** Turn Geoapify features into OSM-style elements so categorise() and the address helpers work unchanged. */
+export function parseGeoapify(json: { features?: GeoapifyFeature[] }, mapped: [string, string][]): OsmElement[] {
+  const out: OsmElement[] = [];
+  for (const { properties: p } of json.features ?? []) {
+    if (!p.name) continue;
+    const raw = p.datasource?.raw ?? {};
+    const tags: Record<string, string> = {};
+    for (const [k, v] of Object.entries(raw)) if (typeof v === 'string') tags[k] = v;
+    tags.name = p.name;
+    // Make sure the tag we asked for is present, even if the raw OSM tags are missing.
+    for (const [tag, cat] of mapped) {
+      const [key, value] = tag.split('=');
+      if (!tags[key] && p.categories?.includes(cat)) tags[key] = value;
+    }
+    if (p.street && !tags['addr:street']) tags['addr:street'] = p.street;
+    if (p.housenumber && !tags['addr:housenumber']) tags['addr:housenumber'] = p.housenumber;
+    if (p.suburb && !tags['addr:suburb']) tags['addr:suburb'] = p.suburb;
+    if (p.city && !tags['addr:city']) tags['addr:city'] = p.city;
+    if (p.website && !tags.website) tags.website = p.website;
+    if (p.opening_hours && !tags.opening_hours) tags.opening_hours = p.opening_hours;
+    if (p.contact?.phone && !tags.phone) tags.phone = p.contact.phone;
+    // Same id as Overpass rows (e.g. node/123) so the two sources never duplicate a place.
+    const osmType = OSM_TYPES[String(raw.osm_type ?? '')];
+    const sourceId = osmType && raw.osm_id != null ? `${osmType}/${raw.osm_id}` : `geoapify/${p.place_id}`;
+    out.push({ sourceId, lat: p.lat, lng: p.lon, tags });
+  }
+  return out;
+}
+
+async function fetchGeoapify(bbox: Bbox, filters: OsmFilter[]): Promise<OsmElement[]> {
+  const mapped = filters
+    .flatMap((f) => f.values.map((v) => `${f.key}=${v}`))
+    .filter((t) => GEOAPIFY_CATEGORIES[t])
+    .map((t): [string, string] => [t, GEOAPIFY_CATEGORIES[t]]);
+  if (mapped.length === 0) return [];
+  const url = new URL('https://api.geoapify.com/v2/places');
+  url.searchParams.set('categories', [...new Set(mapped.map(([, c]) => c))].join(','));
+  url.searchParams.set('filter', `rect:${bbox.west},${bbox.south},${bbox.east},${bbox.north}`);
+  url.searchParams.set('limit', '500');
+  url.searchParams.set('apiKey', env.GEOAPIFY_API_KEY!);
+  const res = await fetch(url, { headers: { 'User-Agent': userAgent() }, signal: AbortSignal.timeout(15_000), cache: 'no-store' });
+  if (!res.ok) throw new Error(`Geoapify HTTP ${res.status}`);
+  return parseGeoapify(await res.json(), mapped);
+}
+
 // ───────────────────────────── Nominatim fallback ─────────────────────────────
 
 let nominatimQueue: Promise<unknown> = Promise.resolve();
@@ -183,7 +271,14 @@ export async function fetchOsmPlaces(
   bbox: Bbox,
   filters: OsmFilter[],
   fallbackFilters: OsmFilter[] = filters,
-): Promise<{ elements: OsmElement[]; via: 'overpass' | 'nominatim' }> {
+): Promise<{ elements: OsmElement[]; via: 'geoapify' | 'overpass' | 'nominatim' }> {
+  if (env.GEOAPIFY_API_KEY) {
+    try {
+      return { elements: await fetchGeoapify(bbox, filters), via: 'geoapify' };
+    } catch (err) {
+      console.warn('[places] Geoapify failed, trying Overpass:', (err as Error).message);
+    }
+  }
   try {
     return { elements: await fetchOverpass(buildOverpassQuery(bbox, filters)), via: 'overpass' };
   } catch (err) {

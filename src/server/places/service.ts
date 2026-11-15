@@ -166,7 +166,7 @@ export async function ensureCells(cells: string[], wanted: string[]): Promise<{ 
           missing.flatMap((c) => c.filters),
         );
         if (via === 'nominatim') slowFallback = true;
-        const coveredCats = via === 'overpass' ? all : missing;
+        const coveredCats = via === 'nominatim' ? missing : all;
         const count = await upsertElements(elements, coveredCats);
         for (const c of coveredCats) {
           await query(sql`
