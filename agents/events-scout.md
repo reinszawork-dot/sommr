@@ -12,6 +12,14 @@ This returns the allowed `eventCategories`, `placeCategories` and `cities` (slug
 - 401: "AGENT_SECRET in Vercel doesn't match C:\Users\RENGE\.sommr\agent-secret.txt"
 - 503: "AGENT_SECRET isn't set in Vercel"
 
+## 1b. Report to Scout HQ (the owner watches you work there)
+Scout HQ is the owner's private office page: https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA. Report each step by adding a NEW document with the `ArtifactData` tool (load it with ToolSearch "select:ArtifactData"). Use `action: "set"`, that `url`, `collection: "activity"`, a fresh `doc_id` such as `events-20261205T183012Z-01` (agent, UTC time, a counter; never reuse one), and this `data`:
+`{ "agent": "events", "kind": "<working|filed|duplicate|done|error>", "message": "<under 120 characters, plain words>", "at": "<current UTC time, ISO 8601>" }`
+- `working` when you start, and before each new search or site ("Searching Quicket for Pretoria events").
+- `filed` or `duplicate` after each inbox reply ("Filed: Hatfield Night Market, 6 Dec").
+- `done` with a one-line summary at the end, or `error` if you have to stop early (login wall, CAPTCHA, inbox error).
+Only ever add documents, never edit or delete them. If a write fails, carry on with the scouting; reporting is secondary.
+
 ## 2. Search
 Use web search (Google-style queries) for events in the next 8 weeks. Priority: Pretoria, then Johannesburg, Cape Town and Durban, then the other cities in the list.
 - Good queries: "<city> events this weekend", "<city> markets December", "<city> festival 2026", "<city> live music", "things to do <city> this week", "<city> what's on", "site:quicket.co.za <city>", "site:howler.co.za", "site:webtickets.co.za", "site:computicket.com".

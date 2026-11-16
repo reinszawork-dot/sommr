@@ -14,6 +14,14 @@ This returns the allowed `placeCategories` and `cities` (slugs). If it fails, st
 - 401: "AGENT_SECRET in Vercel doesn't match C:\Users\RENGE\.sommr\agent-secret.txt"
 - 503: "AGENT_SECRET isn't set in Vercel"
 
+## 1b. Report to Scout HQ (the owner watches you work there)
+Scout HQ is the owner's private office page: https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA. Report each step by adding a NEW document with the `ArtifactData` tool (load it with ToolSearch "select:ArtifactData"). Use `action: "set"`, that `url`, `collection: "activity"`, a fresh `doc_id` such as `gems-20261207T102512Z-01` (agent, UTC time, a counter; never reuse one), and this `data`:
+`{ "agent": "gems", "kind": "<working|filed|duplicate|done|error>", "message": "<under 120 characters, plain words>", "at": "<current UTC time, ISO 8601>" }`
+- `working` when you start, and before each new search or site ("Browsing Instagram #pretoriacoffee").
+- `filed` or `duplicate` after each inbox reply ("Filed: Little Owl Coffee, Hatfield").
+- `done` with a one-line summary at the end, or `error` if you have to stop early (login wall, CAPTCHA, inbox error).
+Only ever add documents, never edit or delete them. If a write fails, carry on with the scouting; reporting is secondary.
+
 ## 2. Search
 Use web search (Google-style queries). Priority: Pretoria, then Johannesburg, Cape Town and Durban, then the other cities in the list. Rotate categories each run.
 - Good queries: "best hidden coffee shops Pretoria", "new coffee shop Pretoria east 2026", "braai spots Pretoria public", "picnic spots near Johannesburg", "hidden gems Cape Town locals", "padstal near <city>", "waterfall hike near <city>", "best markets <city>".
