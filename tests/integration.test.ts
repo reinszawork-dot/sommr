@@ -11,6 +11,7 @@ import type { ImportedEvent } from '@/server/events/types';
 const dir = mkdtempSync(join(tmpdir(), 'sommr-test-'));
 process.env.PGLITE_DIR = dir;
 delete process.env.DATABASE_URL;
+process.env.AGENT_SECRET = 'test-agent-secret';
 
 type Db = typeof import('@/server/db');
 let db: Db;
@@ -174,5 +175,44 @@ describe('security', () => {
   it('limits repeated attempts', async () => {
     for (let i = 0; i < 3; i++) expect(await auth.rateLimit('test:bucket', 3, 60)).toBe(true);
     expect(await auth.rateLimit('test:bucket', 3, 60)).toBe(false);
+  });
+});
+
+describe('agent inbox', () => {
+  const call = async (method: 'GET' | 'POST', body?: unknown, secret = 'test-agent-secret') => {
+    const route = await import('@/app/api/agent/route');
+    const req = new Request('http://test/api/agent', {
+      method,
+      headers: { authorization: `Bearer ${secret}`, 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const res = await route[method](req);
+    return { status: res.status, body: await res.json() };
+  };
+
+  it('rejects a wrong secret', async () => {
+    expect((await call('GET', undefined, 'nope')).status).toBe(401);
+  });
+
+  it('files events as pending and skips duplicates', async () => {
+    const { body: meta } = await call('GET');
+    const event = {
+      kind: 'event', title: 'Agent test festival', starts_at: future(10).toISOString(), venue_name: 'Union Buildings',
+      city_slug: 'pretoria', category_slug: meta.eventCategories[0].slug, source_url: 'https://example.com/fest',
+    };
+    expect(await call('POST', event)).toMatchObject({ status: 201, body: { status: 'pending' } });
+    expect((await call('POST', event)).body.status).toBe('duplicate');
+    const row = await db.one<{ status: string; review_note: string }>(db.sql`select status, review_note from events where title = 'Agent test festival'`);
+    expect(row).toMatchObject({ status: 'pending', review_note: 'Found by agent. Source: https://example.com/fest' });
+  });
+
+  it('files places as pending and refuses bad input', async () => {
+    const place = {
+      kind: 'place', name: 'Hidden test coffee', category_slug: 'coffee', address: '1 Church St, Hatfield',
+      city_slug: 'pretoria', lat: -25.75, lng: 28.23, source_url: 'https://example.com/coffee',
+    };
+    expect((await call('POST', place)).status).toBe(201);
+    expect((await call('POST', { ...place, name: 'Other', lat: 51.5 })).status).toBe(400);
+    expect((await call('POST', { ...place, name: 'Other', category_slug: 'nope' })).status).toBe(400);
   });
 });

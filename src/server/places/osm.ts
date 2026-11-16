@@ -178,15 +178,27 @@ async function fetchGeoapify(bbox: Bbox, filters: OsmFilter[]): Promise<OsmEleme
     .filter((t) => GEOAPIFY_CATEGORIES[t])
     .map((t): [string, string] => [t, GEOAPIFY_CATEGORIES[t]]);
   if (mapped.length === 0) return [];
-  const url = new URL('https://api.geoapify.com/v2/places');
-  url.searchParams.set('categories', [...new Set(mapped.map(([, c]) => c))].join(','));
-  url.searchParams.set('filter', `rect:${bbox.west},${bbox.south},${bbox.east},${bbox.north}`);
-  url.searchParams.set('limit', '500');
-  url.searchParams.set('apiKey', env.GEOAPIFY_API_KEY!);
-  const res = await fetch(url, { headers: { 'User-Agent': userAgent() }, signal: AbortSignal.timeout(15_000), cache: 'no-store' });
-  if (!res.ok) throw new Error(`Geoapify HTTP ${res.status}`);
-  return parseGeoapify(await res.json(), mapped);
+  const out: OsmElement[] = [];
+  // Geoapify caps a page at 500; busy city cells have more, so page until a short page.
+  for (let page = 0; page < MAX_GEOAPIFY_PAGES; page++) {
+    const url = new URL('https://api.geoapify.com/v2/places');
+    url.searchParams.set('categories', [...new Set(mapped.map(([, c]) => c))].join(','));
+    url.searchParams.set('filter', `rect:${bbox.west},${bbox.south},${bbox.east},${bbox.north}`);
+    url.searchParams.set('limit', String(GEOAPIFY_PAGE));
+    url.searchParams.set('offset', String(page * GEOAPIFY_PAGE));
+    url.searchParams.set('apiKey', env.GEOAPIFY_API_KEY!);
+    const res = await fetch(url, { headers: { 'User-Agent': userAgent() }, signal: AbortSignal.timeout(15_000), cache: 'no-store' });
+    if (!res.ok) throw new Error(`Geoapify HTTP ${res.status}`);
+    const json = (await res.json()) as { features?: GeoapifyFeature[] };
+    out.push(...parseGeoapify(json, mapped));
+    if ((json.features?.length ?? 0) < GEOAPIFY_PAGE) break;
+  }
+  return out;
 }
+
+const GEOAPIFY_PAGE = 500;
+// shortcut: 8 pages = 4,000 places per 11 km cell, enough for any SA city centre; raise if a cell ever fills it.
+const MAX_GEOAPIFY_PAGES = 8;
 
 // ───────────────────────────── Nominatim fallback ─────────────────────────────
 
