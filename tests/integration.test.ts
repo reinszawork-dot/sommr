@@ -206,6 +206,25 @@ describe('agent inbox', () => {
     expect(row).toMatchObject({ status: 'pending', review_note: 'Found by agent. Source: https://example.com/fest' });
   });
 
+  it('approve-all publishes agent events and pinned places, keeps unpinnable places pending', async () => {
+    const { publishAgentFinds } = await import('@/server/services/agent-finds');
+    // On Pretoria's centre: one the map lookup finds nearby, one it can't find, one it puts in Cape Town.
+    await db.query(db.sql`insert into places (source, name, category_slug, lat, lng, address, city, status, review_note) values
+      ('community', 'Found agent place', 'coffee', -25.7479, 28.2293, '5 Test Rd, Hatfield', 'Pretoria', 'pending', 'Found by agent. Source: https://example.com/a'),
+      ('community', 'Lost agent place', 'coffee', -25.7479, 28.2293, 'nowhere', 'Pretoria', 'pending', 'Found by agent. Source: https://example.com/b'),
+      ('community', 'Far agent place', 'coffee', -25.7479, 28.2293, 'far away', 'Pretoria', 'pending', 'Found by agent. Source: https://example.com/c')`);
+    const fakeMap = async (text: string) =>
+      text.includes('Hatfield') ? { lat: -25.75, lng: 28.24 } : text.includes('far away') ? { lat: -33.92, lng: 18.42 } : null;
+    const r = await publishAgentFinds(fakeMap);
+    expect(r.events).toBeGreaterThan(0); // the event filed in the earlier test
+    const rows = await db.query<{ name: string; status: string; lat: number }>(db.sql`select name, status, lat from places where name like '% agent place' order by name`);
+    expect(rows).toEqual([
+      { name: 'Far agent place', status: 'pending', lat: -25.7479 },
+      { name: 'Found agent place', status: 'published', lat: -25.75 },
+      { name: 'Lost agent place', status: 'pending', lat: -25.7479 },
+    ]);
+  });
+
   it('files places as pending and refuses bad input', async () => {
     const place = {
       kind: 'place', name: 'Hidden test coffee', category_slug: 'coffee', address: '1 Church St, Hatfield',

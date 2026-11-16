@@ -4,8 +4,8 @@ import { Check, Pencil, X } from 'lucide-react';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { getCity } from '@/lib/cities';
 import { formatShortDate, formatTime, timeAgo } from '@/lib/time';
-import { setEventStatusAction, setPlaceStatusAction } from '@/server/actions/admin';
-import { query, sql } from '@/server/db';
+import { approveAgentFindsAction, setEventStatusAction, setPlaceStatusAction } from '@/server/actions/admin';
+import { maybeOne, query, sql } from '@/server/db';
 
 export const metadata: Metadata = { title: 'Submissions' };
 
@@ -18,6 +18,9 @@ export default async function SubmissionsPage() {
       select p.id, p.name, p.category_slug, p.address, p.city, p.website, p.description, u.email, p.created_at
       from places p left join users u on u.id = p.submitted_by where p.status = 'pending' order by p.created_at`),
   ]);
+  const agent = await maybeOne<{ n: number }>(sql`
+    select ((select count(*) from events where status = 'pending' and review_note like 'Found by agent%')
+          + (select count(*) from places where status = 'pending' and review_note like 'Found by agent%'))::int as n`);
   return (
     <div className="space-y-10">
       <div>
@@ -25,6 +28,18 @@ export default async function SubmissionsPage() {
         <p className="mt-2 max-w-2xl text-sm text-ink-3">
           Events and places suggested by members. Check each one against an official source before approving — nothing is shown publicly until you do.
         </p>
+        {agent && agent.n > 0 ? (
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <ActionButton
+              action={approveAgentFindsAction}
+              className="btn btn-primary"
+              confirm={`Publish all ${agent.n} finds from your research agents?`}
+            >
+              <Check size={16} aria-hidden="true" /> Approve all agent finds ({agent.n})
+            </ActionButton>
+            <span className="text-xs text-ink-3">Places are pinned from their address first; any that can’t be pinned stay here.</span>
+          </div>
+        ) : null}
       </div>
       <section>
         <h2 className="display mb-3 text-3xl">Events ({events.length})</h2>

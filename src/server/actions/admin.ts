@@ -8,6 +8,7 @@ import { ICON_NAMES } from '@/components/ui/Icon';
 import { parseSaDateTime, toSaLocalInput } from '@/lib/time';
 import { requireAdmin } from '../auth';
 import { maybeOne, query, sql } from '../db';
+import { publishAgentFinds } from '../services/agent-finds';
 import { assignCity, runAllImports, runSource, type EventSource, LOCKABLE_FIELDS } from '../events/importer';
 import { parseJsonLdEvents } from '../events/providers/jsonld';
 import { geocodeOne } from '../geocode';
@@ -372,6 +373,15 @@ export async function setPlaceStatusAction(id: string, status: 'published' | 're
   await requireAdmin();
   await query(sql`update places set status = ${status}, review_note = ${note ?? null}, updated_at = now() where id = ${id}`);
   revalidatePath('/', 'layout');
+}
+
+/** Publish everything the research agents filed; see publishAgentFinds for how places are pinned. */
+export async function approveAgentFindsAction() {
+  await requireAdmin();
+  const r = await publishAgentFinds();
+  revalidatePath('/', 'layout');
+  const left = r.unpinned ? ` ${r.unpinned} place${r.unpinned === 1 ? '' : 's'} couldn’t be pinned on the map and still need${r.unpinned === 1 ? 's' : ''} you.` : '';
+  return { status: 'ok', message: `Published ${r.events} events and ${r.places} places.${left}` };
 }
 
 export async function toggleFeaturedAction(kind: 'event' | 'place' | 'challenge', id: string, featured: boolean) {
