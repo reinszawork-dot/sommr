@@ -44,6 +44,8 @@ const eventSchema = z.object({
   description: z.string().trim().max(2000).optional(),
   is_free: z.boolean().optional(),
   price_min: z.number().min(0).max(100_000).optional(),
+  // The organiser's own promo photos (direct https image links); the first becomes the cover.
+  images: z.array(link.regex(/^https:\/\//i, 'images must be https links')).max(4).optional(),
 });
 
 const placeSchema = z.object({
@@ -88,16 +90,24 @@ export async function POST(req: Request) {
     const startsAt = new Date(v.starts_at);
     if (startsAt < new Date()) return apiError(400, 'starts_at: event is in the past');
     // Same title on the same SA day = already known (from any source, any status).
-    const dup = await maybeOne(sql`
+    const images = v.images ?? [];
+    const dup = await maybeOne<{ id: string }>(sql`
       select id from events where lower(title) = lower(${v.title})
         and (starts_at at time zone 'Africa/Johannesburg')::date = (${startsAt}::timestamptz at time zone 'Africa/Johannesburg')::date`);
-    if (dup) return json({ status: 'duplicate' });
+    if (dup) {
+      // Known event: only fill in photos it doesn't have yet; never overwrite anything else.
+      if (images.length) {
+        await query(sql`update events set image_url = ${images[0]}, gallery = ${images.slice(1)}, updated_at = now()
+          where id = ${dup.id} and image_url is null and not ('image_url' = any(locked_fields))`);
+      }
+      return json({ status: 'duplicate' });
+    }
     await query(sql`
       insert into events (source, title, description, category_slug, starts_at, ends_at, venue_name, address, city_slug,
-        is_free, price_min, ticket_url, source_url, status, review_note)
+        is_free, price_min, ticket_url, source_url, image_url, gallery, status, review_note)
       values ('community', ${v.title}, ${v.description ?? null}, ${v.category_slug}, ${startsAt}, ${v.ends_at ? new Date(v.ends_at) : null},
         ${v.venue_name}, ${v.address ?? null}, ${c.slug}, ${v.is_free ?? null}, ${v.price_min ?? null},
-        ${v.ticket_url ?? v.source_url}, ${v.source_url}, 'pending', ${note})`);
+        ${v.ticket_url ?? v.source_url}, ${v.source_url}, ${images[0] ?? null}, ${images.slice(1)}, 'pending', ${note})`);
     return json({ status: 'pending' }, { status: 201 });
   }
 

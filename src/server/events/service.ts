@@ -24,6 +24,7 @@ export interface EventRow {
   is_free: boolean | null;
   ticket_url: string | null;
   image_url: string | null;
+  gallery: string[];
   organiser: string | null;
   status: string;
   featured: boolean;

@@ -26,6 +26,8 @@ export async function generateMetadata({ params }: PageProps<'/events/[id]'>): P
   return { title: e?.title ?? 'Event' };
 }
 
+const TICKET_SITES = /^https?:\/\/([a-z0-9-]+\.)*(quicket\.co\.za|howler\.co\.za|webtickets\.co\.za|computicket\.com|ticketmaster\.co\.za|ticketpro\.co\.za|plankton\.mobi|tixsa\.co\.za|itickets\.co\.za|nutickets\.co\.za)\//i;
+
 const SOURCE_LABEL: Record<string, string> = {
   ticketmaster: 'Ticketmaster',
   quicket: 'Quicket',
@@ -47,6 +49,10 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
   const price = priceLabel(e);
   const ended = (e.ends_at ?? new Date(e.starts_at.getTime() + 6 * 3_600_000)) < new Date();
   const multiDay = e.ends_at && formatLongDate(e.ends_at) !== formatLongDate(e.starts_at);
+  // A ticket link is one the source gave separately, or a page on a ticketing site; anything else is just the listing.
+  const ticketLink = !!e.ticket_url && (e.ticket_url !== e.source_url || TICKET_SITES.test(e.ticket_url));
+  const linkLabel = !ticketLink ? 'Event info' : e.is_free ? 'Event details' : 'Get tickets';
+  const photoHost = (() => { try { return new URL(e.image_url ?? '').hostname.replace(/^www\./, ''); } catch { return null; } })();
   const location = [e.venue_name, e.address && e.address !== e.venue_name ? e.address : null, !e.address ? city?.name : null].filter(Boolean).join(', ');
 
   return (
@@ -81,6 +87,17 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
             )}
           </div>
           </ViewTransition>
+          {e.gallery.length > 0 ? (
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {e.gallery.slice(0, 3).map((src) => (
+                <a key={src} href={src} target="_blank" rel="noopener noreferrer nofollow" className="block overflow-hidden rounded-2xl border border-line" aria-label="Open photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : null}
+          {e.image_url && photoHost ? <p className="mt-2 text-xs text-ink-3">Photos: {photoHost}</p> : null}
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <CategoryPill category={cat} />
             {price ? <span className="tag tag-sea">{price}</span> : null}
@@ -129,10 +146,21 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
                 </p>
               </div>
             ) : null}
+            {!ended ? (
+              <div className="flex items-start gap-3">
+                <Ticket size={19} className="mt-0.5 text-sun-deep" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold">{e.is_free ? 'Free entry' : price ?? 'Price not listed'}</p>
+                  <p className="text-sm text-ink-3">
+                    {ticketLink ? (e.is_free ? 'Booking link below' : 'Tickets sold online') : e.is_free || price ? 'No online tickets listed' : 'Check the event info for prices'}
+                  </p>
+                </div>
+              </div>
+            ) : null}
             {e.ticket_url && !ended && e.status === 'published' ? (
               <div className="flex gap-2 pt-2">
-                <a href={e.ticket_url} target="_blank" rel="noopener noreferrer nofollow" className="btn btn-primary flex-1">
-                  <Ticket size={17} aria-hidden="true" /> {e.is_free ? 'Event details' : 'Get tickets'}
+                <a href={e.ticket_url} target="_blank" rel="noopener noreferrer nofollow" className={`btn flex-1 ${ticketLink ? 'btn-primary' : 'btn-ghost'}`}>
+                  {ticketLink ? <Ticket size={17} aria-hidden="true" /> : <ExternalLink size={17} aria-hidden="true" />} {linkLabel}
                 </a>
                 <SaveButton saved={e.saved} onToggle={saveEventAction.bind(null, e.id)} label={e.title} />
               </div>

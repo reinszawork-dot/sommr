@@ -225,6 +225,22 @@ describe('agent inbox', () => {
     ]);
   });
 
+  it('stores event photos, and fills photos into a known event that has none', async () => {
+    const { body: meta } = await call('GET');
+    const base = { kind: 'event', venue_name: 'Irene Farm', city_slug: 'pretoria', category_slug: meta.eventCategories[0].slug, source_url: 'https://example.com/m' };
+    const withPhotos = { ...base, title: 'Photo test market', starts_at: future(12).toISOString(), images: ['https://example.com/1.jpg', 'https://example.com/2.jpg'] };
+    expect((await call('POST', withPhotos)).status).toBe(201);
+    const a = await db.one<{ image_url: string; gallery: string[] }>(db.sql`select image_url, gallery from events where title = 'Photo test market'`);
+    expect(a).toEqual({ image_url: 'https://example.com/1.jpg', gallery: ['https://example.com/2.jpg'] });
+
+    const bare = { ...base, title: 'Bare test market', starts_at: future(13).toISOString() };
+    expect((await call('POST', bare)).status).toBe(201);
+    expect((await call('POST', { ...bare, images: ['https://example.com/3.jpg'] })).body.status).toBe('duplicate');
+    const b = await db.one<{ image_url: string | null }>(db.sql`select image_url from events where title = 'Bare test market'`);
+    expect(b.image_url).toBe('https://example.com/3.jpg');
+    expect((await call('POST', { ...bare, title: 'Http photo', images: ['http://example.com/x.jpg'] })).status).toBe(400);
+  });
+
   it('files places as pending and refuses bad input', async () => {
     const place = {
       kind: 'place', name: 'Hidden test coffee', category_slug: 'coffee', address: '1 Church St, Hatfield',

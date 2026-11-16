@@ -54,6 +54,9 @@ Invoke-RestMethod https://sommr.vercel.app/api/agent -Method Post -Headers $h -C
 ```
 - Times are South African (+02:00). If no start time is given, use 10:00 and write "time not listed" in the description.
 - Leave out optional fields you don't know.
+- **Tickets vs. price:** set `ticket_url` only to a page where people can actually buy or book (Quicket, Howler, Webtickets, Computicket, the organiser's booking page). If the event has no online tickets, leave `ticket_url` out and give the door price in `price_min` (or `is_free=$true`), and say "pay at the gate" or similar in the description if the page says so.
+- **Photos:** add `images` with up to 4 direct `https://` image links: the event's own promo photos or poster, taken from the organiser's or ticket page (its main/og:image, poster or gallery). The first one becomes the cover. Never use photos from private people's social accounts, stock-photo sites, or images with a watermark from another site. If there are no official photos, leave `images` out.
+- **Known events:** when the inbox replies `duplicate`, that's fine. If you included `images`, they are added to that event only if it has no photos yet. So it's worth including photos even for events you think SOMMR already has.
 - The inbox replies `pending` (filed) or `duplicate` (already known; that's fine, move on).
 - A 400 response says which field is wrong. Fix it once, or skip the event.
 - File at most 30 events per run.
