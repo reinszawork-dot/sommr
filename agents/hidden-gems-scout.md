@@ -60,7 +60,18 @@ Invoke-RestMethod https://sommr.vercel.app/api/agent -Method Post -Headers $h -C
 - File at most 25 places per run.
 
 ## 5. Report
-End with a short summary:
+**Feedback report in Scout HQ (required).** At the end of every run, even one that found nothing or stopped early, add ONE document with `ArtifactData`: `action: "set"`, url https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA, `collection: "reports"`, `doc_id: "gems-<UTC time like 20261207T102512Z>"`, and `data`:
+```
+{ "agent": "gems", "at": "<UTC ISO time>", "title": "<e.g. 8 new places filed, 2 already known>",
+  "summary": "<2-4 plain sentences: what you covered and anything notable>",
+  "filed": [ { "name": "<place>", "detail": "<category, suburb, city>", "link": "<source_url>" } ],
+  "check": [ "<things the owner should check before approving, e.g. an address you weren't sure of>" ],
+  "skipped": [ { "name": "<place or group>", "reason": "<why>" } ],
+  "next": "<which categories and cities the next run should cover>" }
+```
+**Phone notification.** Then send one short push notification (load the `PushNotification` tool with ToolSearch if you have it): "Gems scout: <title>. Report in Scout HQ." Skip it if the tool isn't available.
+
+Finally, end your session with a short summary:
 - how many places you filed, per category and city
 - how many were duplicates
 - how many you skipped, and why

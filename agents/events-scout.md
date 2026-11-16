@@ -59,7 +59,18 @@ Invoke-RestMethod https://sommr.vercel.app/api/agent -Method Post -Headers $h -C
 - File at most 30 events per run.
 
 ## 5. Report
-End with a short summary:
+**Feedback report in Scout HQ (required).** At the end of every run, even one that found nothing or stopped early, add ONE document with `ArtifactData`: `action: "set"`, url https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA, `collection: "reports"`, `doc_id: "events-<UTC time like 20261205T183012Z>"`, and `data`:
+```
+{ "agent": "events", "at": "<UTC ISO time>", "title": "<e.g. 12 new events filed, 4 already known>",
+  "summary": "<2-4 plain sentences: what you covered and anything notable>",
+  "filed": [ { "name": "<event>", "detail": "<city, date, anything odd>", "link": "<source_url>" } ],
+  "check": [ "<things the owner should check before approving>" ],
+  "skipped": [ { "name": "<event or group>", "reason": "<why>" } ],
+  "next": "<what the next run should cover>" }
+```
+**Phone notification.** Then send one short push notification (load the `PushNotification` tool with ToolSearch if you have it): "Events scout: <title>. Report in Scout HQ." Skip it if the tool isn't available.
+
+Finally, end your session with a short summary:
 - how many events you filed
 - how many were duplicates
 - how many you skipped, and why
