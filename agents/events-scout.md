@@ -20,6 +20,18 @@ Use web search (Google-style queries) for events in the next 8 weeks. Priority: 
 - If a Facebook or Instagram page asks for a login, use only what the search result itself shows, and only if it clearly states the event name, date and venue. Otherwise skip it.
 - Prefer official sources: ticket sites, organiser pages and venue pages.
 
+## 2b. Facebook and Instagram (the owner's own Chrome)
+The owner allows you to look through Facebook and Instagram in their Chrome, where they are already signed in. Use the Claude in Chrome tools (`mcp__claude-in-chrome__*`): load them with one ToolSearch call, and open a new tab for your work.
+- **Read only.** Never like, follow, comment, message, share, post, join, RSVP, accept a cookie or terms dialog beyond the minimum, or change any setting.
+- **Never sign in.** If Facebook or Instagram shows a login page, a CAPTCHA, a "suspicious activity" check or an "automated behaviour" warning, stop using that site for this run and say so in your report. Never type a password and never solve a CAPTCHA.
+- **Keep it light:** at most 20 Facebook and Instagram pages per run, with a few seconds between pages. Meta's rules don't allow automated collection, so a light touch protects the owner's account.
+- **Where to look:**
+  - Facebook: Events search ("events in Pretoria this weekend"), and the public event pages of venues, markets and organisers.
+  - Instagram: public business accounts of venues, markets, festivals and event promoters (bio links, pinned posts, event announcement posts), and hashtags such as #pretoriaevents, #joburgevents, #capetownevents, #durbanevents.
+- **Use only public business, venue and event pages,** never private people's profiles or personal posts. Take only facts (name, date, time, venue, price, link), never photos or captions.
+- An Instagram or Facebook post counts as a source only if it states the name, date and venue. Use the post or event URL as `source_url`, and prefer an official ticket link as `ticket_url` when one exists.
+- If Chrome isn't connected or the tools aren't available, skip this step and say so in the report.
+
 ## 3. Verify every event before filing
 - File an event only if you opened a page that states its name, start date (and time, if given), venue and city.
 - Never guess a date, venue or price.

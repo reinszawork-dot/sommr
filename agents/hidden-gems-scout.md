@@ -21,6 +21,18 @@ Use web search (Google-style queries). Priority: Pretoria, then Johannesburg, Ca
 - Only use pages that open without logging in. Never log in to Facebook, Instagram, Google or anything else.
 - Hidden gems come before chains. Skip franchises and big chains (Vida, Seattle, Mugg & Bean, Spur, etc.).
 
+## 2b. Facebook and Instagram (the owner's own Chrome)
+The owner allows you to look through Facebook and Instagram in their Chrome, where they are already signed in. Use the Claude in Chrome tools (`mcp__claude-in-chrome__*`): load them with one ToolSearch call, and open a new tab for your work.
+- **Read only.** Never like, follow, comment, message, share, post, join, or change any setting.
+- **Never sign in.** If Facebook or Instagram shows a login page, a CAPTCHA, a "suspicious activity" check or an "automated behaviour" warning, stop using that site for this run and say so in your report. Never type a password and never solve a CAPTCHA.
+- **Keep it light:** at most 20 Facebook and Instagram pages per run, with a few seconds between pages. Meta's rules don't allow automated collection, so a light touch protects the owner's account.
+- **Where to look:**
+  - Instagram: hashtags and location pages (#pretoriacoffee, #pretoriaeats, #hiddengemspretoria, #joburgcoffee, #capetowncoffee, #braaispot, #padstal), and the public business accounts of cafés, markets and venues they lead to.
+  - Facebook: public business pages and local "things to do" pages.
+- **Use only public business pages,** never private people's profiles or personal posts. Take only facts (name, address, what it is, website), never photos, reviews or captions.
+- A social post or page counts only if it shows the name and an address or precise landmark, and has activity in the last 12 months. Use the page URL as `source_url`.
+- If Chrome isn't connected or the tools aren't available, skip this step and say so in the report.
+
 ## 3. Verify every place before filing
 - File a place only if a page you opened, or a search result, shows its name and its street address or a precise landmark.
 - It must also be open and operating now: look for reviews or posts from the last 12 months.
