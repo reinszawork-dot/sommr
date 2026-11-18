@@ -17,18 +17,21 @@ Invoke-RestMethod https://sommr.vercel.app/api/agent -Headers $h                
 Invoke-RestMethod "https://sommr.vercel.app/api/agent?list=events" -Headers $h   # live events, next 60 days
 Invoke-RestMethod "https://sommr.vercel.app/api/agent?list=places" -Headers $h   # live non-map places
 ```
+**Before you start working**, read what the owner turned down in the last 60 days: `Invoke-RestMethod "https://sommr.vercel.app/api/agent?list=rejected" -Headers $h`. Each item gives a `reason`. Don't send anything like those again.
+
 If you get a 401, report "AGENT_SECRET in Vercel doesn't match the secret file". If you get a 503, report "AGENT_SECRET isn't set in Vercel". In both cases, stop.
 
 To file things, POST JSON with `Invoke-RestMethod https://sommr.vercel.app/api/agent -Method Post -Headers $h -ContentType 'application/json' -Body ($body | ConvertTo-Json -Depth 4)`:
-- **Event:** `kind='event'`, `title`, `starts_at` (ISO with +02:00), `venue_name`, `city_slug`, `category_slug`, `source_url`. Optional: `address`, `ends_at`, `ticket_url` (only a real ticket or booking page), `description`, `is_free`, `price_min`, and `images` (up to 4 https links to the organiser's own photos).
+- **Event:** `kind='event'`, `title`, `starts_at` (ISO with +02:00), `venue_name`, `city_slug`, `category_slug`, `source_url`. Optional: `address`, `ends_at`, `ticket_url` (only a real ticket or booking page), `description`, `is_free`, `price_min`, `images` (up to 4 https links to the organiser's own photos), and `time_tbc=$true` (no start time announced: send the date at 12:00 and SOMMR shows "Time TBC"; never invent a time).
+- **Fix** (freshness checker): `kind='fix'`, `target='event'|'place'`, `id`, `reason`, `source_url`, `changes`. `changes` can hold: `status` (`cancelled` for an event, `hidden` for a closed place), `sold_out`, `starts_at`, `ends_at`, `time_tbc`, `ticket_url` (or `$null` to remove a fake one), `venue_name`, and for places `website`. Use `-Depth 4` in ConvertTo-Json. Fixes wait for the owner's Apply.
 - **Place:** `kind='place'`, `name`, `category_slug`, `address`, `city_slug`, `source_url`. Optional: `lat`, `lng`, `website`, `description`.
 - **Feed:** `kind='source'`, `feed='ical'|'jsonld'`, `name`, `url`. Optional: `city_slug`, `category_slug` (an event category).
 
-The inbox replies `pending` (filed for the owner's approval) or `duplicate` (already known; fine). A 400 names the bad field: fix it once, or skip.
+The inbox replies `published` (a trusted event: ticketing site, organiser photos, known time, so it went live at once), `pending` (filed for the owner's approval) or `duplicate` (already known; fine). A 400 names the bad field: fix it once, or skip.
 
 ## Report to Scout HQ (the owner watches you there)
 Scout HQ: https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA. Use the `ArtifactData` tool with `action: "set"` and that url. Only ever add new documents, never edit or delete them. If a write fails, carry on; reporting is secondary.
 - **Steps:** `collection: "activity"`, `doc_id: "<id>-<UTC like 20261205T183012Z>-<nn>"`, data `{ "agent": "<id>", "kind": "working|filed|duplicate|done|error", "message": "<under 120 chars>", "at": "<UTC ISO>" }`. Post one when you start and before each new search, and finish with `done` (or `error` if you had to stop early).
 - **Final report (required, once per run):** `collection: "reports"`, `doc_id: "<id>-<UTC like 20261205T183012Z>"`, data:
-  `{ "agent": "<id>", "at": "<UTC ISO>", "title": "<one line>", "summary": "<2-4 sentences>", "filed": [{ "name", "detail", "link" }], "check": ["<what the owner should check>"], "skipped": [{ "name", "reason" }], "next": "<what the next run should do>" }`
+  `{ "agent": "<id>", "at": "<UTC ISO>", "minutes": <whole minutes since you started>, "title": "<one line>", "summary": "<2-4 sentences>", "filed": [{ "name", "detail", "link" }], "check": ["<what the owner should check>"], "skipped": [{ "name", "reason" }], "next": "<what the next run should do>" }`
 - Then, if you have the `PushNotification` tool, send "<Agent name>: <title>. Report in Scout HQ."
