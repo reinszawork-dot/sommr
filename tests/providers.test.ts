@@ -12,6 +12,20 @@ import { assignCity, isExpired } from '@/server/events/importer';
 import { CATEGORY_SEED } from '@/server/seed-data';
 import { buildIcs } from '@/lib/ics';
 import { parseGeoapify } from '@/server/places/osm';
+import { similarTitles } from '@/lib/titles';
+
+describe('duplicate event titles', () => {
+  it('matches the same event written differently', () => {
+    expect(similarTitles('Carols & Kilts at Shongweni', 'Carols and Kilts, Shongweni 2026')).toBe(true);
+    expect(similarTitles('Jakaranda Liggiefees', 'Jakaranda Kinderhuis Liggiefees 2026')).toBe(true);
+    expect(similarTitles('KAMERS/Makers Sandton', 'Kamers Makers – Sandton')).toBe(true);
+  });
+  it('keeps different events apart', () => {
+    expect(similarTitles('SPAR Carols by Candlelight Gauteng', 'Carols by Candlelight at Westown')).toBe(false);
+    expect(similarTitles('Christmas Market', 'Christmas Village')).toBe(false);
+    expect(similarTitles('Gagasi', 'Gagasi FM Beach Fest')).toBe(false); // one word is too little to go on
+  });
+});
 import { categorise } from '@/server/places/service';
 
 describe('Geoapify places', () => {

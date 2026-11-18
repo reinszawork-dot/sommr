@@ -49,8 +49,8 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
   const price = priceLabel(e);
   const ended = (e.ends_at ?? new Date(e.starts_at.getTime() + 6 * 3_600_000)) < new Date();
   const multiDay = e.ends_at && formatLongDate(e.ends_at) !== formatLongDate(e.starts_at);
-  // A ticket link is one the source gave separately, or a page on a ticketing site; anything else is just the listing.
-  const ticketLink = !!e.ticket_url && (e.ticket_url !== e.source_url || TICKET_SITES.test(e.ticket_url));
+  // Only a ticketing site counts as "Get tickets": agents sometimes give a listing article as the ticket link.
+  const ticketLink = !!e.ticket_url && TICKET_SITES.test(e.ticket_url);
   const linkLabel = !ticketLink ? 'Event info' : e.is_free ? 'Event details' : 'Get tickets';
   const photoHost = (() => { try { return new URL(e.image_url ?? '').hostname.replace(/^www\./, ''); } catch { return null; } })();
   const location = [e.venue_name, e.address && e.address !== e.venue_name ? e.address : null, !e.address ? city?.name : null].filter(Boolean).join(', ');

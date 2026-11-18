@@ -4,6 +4,7 @@ import { apiError, json } from '@/server/api';
 import { maybeOne, query, sql } from '@/server/db';
 import { env } from '@/server/env';
 import { CITIES, getCity } from '@/lib/cities';
+import { similarTitles } from '@/lib/titles';
 import { getCategories } from '@/server/services/categories';
 
 export const dynamic = 'force-dynamic';
@@ -87,7 +88,7 @@ export async function GET(req: Request) {
   }
   if (list === 'places') {
     return json({ places: await query(sql`
-      select id, name, category_slug, address, city, website, updated_at from places
+      select id, name, category_slug, address, city, website, substring(review_note from 'Source: (\S+)') as source_url, updated_at from places
       where status = 'published' and source <> 'osm' order by updated_at limit 400`) });
   }
   const cats = await getCategories();
@@ -125,9 +126,12 @@ export async function POST(req: Request) {
     if (startsAt < new Date()) return apiError(400, 'starts_at: event is in the past');
     // Same title on the same SA day = already known (from any source, any status).
     const images = v.images ?? [];
-    const dup = await maybeOne<{ id: string }>(sql`
-      select id from events where lower(title) = lower(${v.title})
-        and (starts_at at time zone 'Africa/Johannesburg')::date = (${startsAt}::timestamptz at time zone 'Africa/Johannesburg')::date`);
+    // Same SA day and (same title anywhere, or a near-identical title in the same town) = already known.
+    const sameDay = await query<{ id: string; title: string; city_slug: string | null }>(sql`
+      select id, title, city_slug from events
+      where (starts_at at time zone 'Africa/Johannesburg')::date = (${startsAt}::timestamptz at time zone 'Africa/Johannesburg')::date`);
+    const dup = sameDay.find((e) => e.title.toLowerCase() === v.title.toLowerCase())
+      ?? sameDay.find((e) => e.city_slug === c.slug && similarTitles(e.title, v.title));
     if (dup) {
       // Known event: only fill in photos it doesn't have yet; never overwrite anything else.
       if (images.length) {
