@@ -202,6 +202,13 @@ export function PlaceDetail({
         </Link>
       </div>
 
+      {place.source === 'wikivoyage' ? (
+        <p className="mt-6 text-xs leading-relaxed text-ink-3">
+          Description from{' '}
+          <a href="https://en.wikivoyage.org/" target="_blank" rel="noreferrer" className="underline">Wikivoyage</a>, shared under{' '}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer" className="underline">CC BY-SA 4.0</a>.
+        </p>
+      ) : null}
       {place.osmUrl ? (
         <p className="mt-6 text-xs leading-relaxed text-ink-3">
           Data © OpenStreetMap contributors.{' '}

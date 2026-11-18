@@ -121,6 +121,21 @@ const GEOAPIFY_CATEGORIES: Record<string, string> = {
   'leisure=water_park': 'entertainment.water_park',
   'leisure=bowling_alley': 'entertainment.bowling_alley',
   'tourism=theme_park': 'entertainment.theme_park',
+  'tourism=museum': 'entertainment.museum',
+  'tourism=gallery': 'entertainment.culture.gallery',
+  'amenity=planetarium': 'entertainment.planetarium',
+  'tourism=zoo': 'entertainment.zoo',
+  'tourism=aquarium': 'entertainment.aquarium',
+  'leisure=swimming_pool': 'sport.swimming_pool',
+  'craft=winery': 'production.winery',
+  'craft=brewery': 'production.brewery',
+  'leisure=miniature_golf': 'entertainment.miniature_golf',
+  'leisure=escape_game': 'entertainment.escape_game',
+  'leisure=trampoline_park': 'entertainment.activity_park.trampoline',
+  'sport=climbing': 'entertainment.activity_park.climbing',
+  'leisure=amusement_arcade': 'entertainment.amusement_arcade',
+  'natural=peak': 'natural.mountain.peak',
+  'boundary=national_park': 'national_park',
 };
 
 interface GeoapifyFeature {

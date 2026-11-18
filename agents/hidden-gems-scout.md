@@ -23,6 +23,17 @@ Scout HQ is the owner's private office page: https://claude.ai/artifact/9Kwj38zL
 - `done` with a one-line summary at the end, or `error` if you have to stop early (login wall, CAPTCHA, inbox error).
 Only ever add documents, never edit or delete them. If a write fails, carry on with the scouting; reporting is secondary.
 
+## 1d. Parks round (every run)
+Pick 2 of these and look for day-visit spots that are missing from SOMMR: picnic and braai sites, short hikes and trails, swimming spots, viewpoints, gardens.
+- SANParks: sanparks.org (Table Mountain, Golden Gate, Kruger day areas, Garden Route).
+- CapeNature: capenature.co.za.
+- Ezemvelo KZN Wildlife: kznwildlife.com.
+- City and provincial nature reserves (e.g. Groenkloof, Klipriviersberg, Silvermine, Kirstenbosch).
+
+File each verified spot as a place: `braai` for picnic and braai sites, `hiking` for trails and peaks, `scenic` for viewpoints and waterfalls, `swimming` for swimming spots, `outdoors` for the rest. Give the park's own page as `source_url`.
+
+New place categories you can use: `museums`, `animals` (zoos and aquariums), `swimming`, `wine` (wine farms and craft breweries), `fun` (mini-golf, escape rooms, trampoline parks, climbing, arcades, go-karting), `hiking`, `sights`, `activities`. Wine farms and go-karting are often missing from the map, so they're worth a look.
+
 ## 1c. Before you search
 Read what the owner turned down in the last 60 days: `Invoke-RestMethod "https://sommr.vercel.app/api/agent?list=rejected" -Headers $h`. Each item has a `reason`. Don't file anything like those again.
 

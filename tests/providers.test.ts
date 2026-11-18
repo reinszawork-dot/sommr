@@ -13,6 +13,27 @@ import { CATEGORY_SEED } from '@/server/seed-data';
 import { buildIcs } from '@/lib/ics';
 import { parseGeoapify } from '@/server/places/osm';
 import { similarTitles } from '@/lib/titles';
+import { parseListings, plainWiki } from '@/server/places/wikivoyage';
+
+describe('Wikivoyage listings', () => {
+  const page = `==See==
+* {{see | name=[[Union Buildings]] | url=https://example.gov.za | lat=-25.7404 | long=28.2122 | address=Government Ave, Arcadia
+| content=Seat of government with '''terraced gardens''' and a [[Nelson Mandela]] statue {{dead link}}. }}
+* {{see | name=No coordinates | lat= | long= | content=skip me }}
+==Do==
+* {{do | name=Hike the [[Klipriviersberg|Klipriviersberg trail]] | lat=-26.28 | long=28.03 | url=not-a-link | content=A good morning walk.}}
+* {{eat | name=Not a sight | lat=-25.7 | long=28.2 }}`;
+  it('keeps see and do listings with coordinates, as plain text', () => {
+    const l = parseListings(page);
+    expect(l).toHaveLength(2);
+    expect(l[0]).toMatchObject({ type: 'see', name: 'Union Buildings', lat: -25.7404, lng: 28.2122, url: 'https://example.gov.za', address: 'Government Ave, Arcadia' });
+    expect(l[0].content).toBe('Seat of government with terraced gardens and a Nelson Mandela statue .');
+    expect(l[1]).toMatchObject({ type: 'do', name: 'Hike the Klipriviersberg trail', url: null });
+  });
+  it('strips wiki markup', () => {
+    expect(plainWiki("'''Big''' [[A|b]] [https://x.y label] <br/>end")).toBe('Big b label end');
+  });
+});
 
 describe('duplicate event titles', () => {
   it('matches the same event written differently', () => {

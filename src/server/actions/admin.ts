@@ -8,6 +8,7 @@ import { ICON_NAMES } from '@/components/ui/Icon';
 import { parseSaDateTime, toSaLocalInput } from '@/lib/time';
 import { requireAdmin } from '../auth';
 import { maybeOne, query, sql } from '../db';
+import { importWikivoyage } from '../places/wikivoyage';
 import { applyFix, findDuplicateGroups, mergeDuplicates, publishAgentFinds, rejectWithReason } from '../services/agent-finds';
 import { assignCity, runAllImports, runSource, type EventSource, LOCKABLE_FIELDS } from '../events/importer';
 import { parseJsonLdEvents } from '../events/providers/jsonld';
@@ -373,6 +374,13 @@ export async function setPlaceStatusAction(id: string, status: 'published' | 're
   await requireAdmin();
   await query(sql`update places set status = ${status}, review_note = ${note ?? null}, updated_at = now() where id = ${id}`);
   revalidatePath('/', 'layout');
+}
+
+export async function importWikivoyageAction() {
+  await requireAdmin();
+  const r = await importWikivoyage();
+  revalidatePath('/', 'layout');
+  return { status: 'ok', message: `Imported ${r.listings} sights and activities from ${r.towns} town guides.` };
 }
 
 export async function rejectWithReasonAction(target: 'event' | 'place', id: string, reason: string) {

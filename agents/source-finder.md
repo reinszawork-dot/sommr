@@ -14,6 +14,12 @@ How:
 3. File each verified feed as `kind='source'`, with a clear `name` ("Lyric Theatre, Gold Reef City"), the `city_slug`, and a `category_slug` if every event in the feed is one kind (e.g. `food-market`).
 4. They arrive **disabled**. Tell the owner in your report to open Admin → Imports, press **Run** on each new one to test it, then **Enable** it.
 
+**Where to look, besides venue sites** (rotate through these):
+- **Wine routes:** Stellenbosch, Franschhoek, Paarl, Robertson, Constantia, Durbanville, Swartland, and the Magaliesberg Meander. Their event calendars and member estates often have iCal or schema.org data.
+- **Markets:** Neighbourgoods (Braamfontein), Irene Village Market, Hazel Food Market, Oranjezicht City Farm Market, Bryanston Organic Market, Root 44, Blaauwklippen.
+- **Museums and theatres:** Iziko, Ditsong, Artscape, Baxter, Joburg Theatre, Montecasino Teatro, Playhouse (Durban).
+- **Ticketing listing pages:** Howler, Webtickets, Computicket, Quicket city or category pages. Test whether the page itself carries schema.org Event data for many events. If it does, file it as `feed='jsonld'` with the city in `city_slug`.
+
 Limits: at most 15 feeds per run. Skip ticketing giants (Quicket, Ticketmaster, Computicket, Howler, Webtickets); those need API deals, not feeds.
 
 Agent name for reports: "Source finder".

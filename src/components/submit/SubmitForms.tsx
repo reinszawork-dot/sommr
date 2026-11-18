@@ -70,6 +70,19 @@ export function SubmitEventForm({ categories }: { categories: { slug: string; la
         <input id="s-link" name="link" type="url" className="input" placeholder="https://" required />
         <Err state={state} name="link" />
       </div>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="time_tbc" /> The start time hasn’t been announced yet
+      </label>
+      <div>
+        <label className="field-label" htmlFor="s-org">Organiser <span className="font-normal text-ink-3">(optional)</span></label>
+        <input id="s-org" name="organiser" className="input" maxLength={120} />
+      </div>
+      <div>
+        <label className="field-label" htmlFor="s-photos">Photo links <span className="font-normal text-ink-3">(optional: up to 3, one per line)</span></label>
+        <textarea id="s-photos" name="photos" className="textarea" rows={3} placeholder="https://…/poster.jpg" />
+        <p className="mt-1 text-xs text-ink-3">Your own event photos or poster, as direct https image links. Only use photos you have the right to share.</p>
+        <Err state={state} name="photos" />
+      </div>
       <div>
         <label className="field-label" htmlFor="s-desc">Anything else? <span className="font-normal text-ink-3">(optional)</span></label>
         <textarea id="s-desc" name="description" className="textarea" maxLength={2000} />

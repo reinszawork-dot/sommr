@@ -4,7 +4,7 @@ import { ActionButton } from '@/components/admin/ActionButton';
 import { SourceForm } from '@/components/admin/SourceForm';
 import { getCity } from '@/lib/cities';
 import { formatShortDate, formatTime, timeAgo } from '@/lib/time';
-import { deleteSourceAction, runAllImportsAction, runSourceAction, toggleSourceAction } from '@/server/actions/admin';
+import { deleteSourceAction, importWikivoyageAction, runAllImportsAction, runSourceAction, toggleSourceAction } from '@/server/actions/admin';
 import { query, sql } from '@/server/db';
 import { getCategories } from '@/server/services/categories';
 
@@ -30,10 +30,18 @@ export default async function SourcesPage() {
             Events are imported daily from these sources. Changed events are updated, cancelled ones flagged, removed ones archived and finished ones hidden automatically. Your manual corrections are never overwritten.
           </p>
         </div>
-        <ActionButton action={runAllImportsAction} className="btn btn-primary">
-          <Play size={16} aria-hidden="true" /> Run all now
-        </ActionButton>
+        <div className="flex flex-wrap gap-2">
+          <ActionButton action={importWikivoyageAction} className="btn btn-ghost">
+            <Play size={16} aria-hidden="true" /> Import Wikivoyage sights
+          </ActionButton>
+          <ActionButton action={runAllImportsAction} className="btn btn-primary">
+            <Play size={16} aria-hidden="true" /> Run all now
+          </ActionButton>
+        </div>
       </div>
+      <p className="-mt-6 text-sm text-ink-3">
+        Wikivoyage sights and activities for every SOMMR town refresh by themselves every two weeks; the button fetches them now (takes about a minute).
+      </p>
 
       <ul className="space-y-3">
         {sources.map((s) => (

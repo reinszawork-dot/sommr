@@ -72,9 +72,12 @@ export default async function WhatsOnPage({ searchParams }: PageProps<'/whats-on
           </>
         }
         actions={
-          <Link href="/submit/event" className="btn btn-ghost">
-            <Plus size={17} aria-hidden="true" /> Suggest an event
-          </Link>
+          <span className="flex flex-wrap gap-2">
+            <Link href="/organisers" className="btn btn-ghost">Organisers: list your event</Link>
+            <Link href="/submit/event" className="btn btn-ghost">
+              <Plus size={17} aria-hidden="true" /> Suggest an event
+            </Link>
+          </span>
         }
       >
         Gigs, markets, festivals and summer parties — from ticketing partners and our team, updated daily.

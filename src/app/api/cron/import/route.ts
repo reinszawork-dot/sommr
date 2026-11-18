@@ -1,6 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { env } from '@/server/env';
 import { runAllImports } from '@/server/events/importer';
+import { importWikivoyage, wikivoyageDue } from '@/server/places/wikivoyage';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -23,5 +24,7 @@ export async function GET(req: Request) {
   if (!env.CRON_SECRET) return Response.json({ error: 'CRON_SECRET is not configured.' }, { status: 503 });
   if (!authorised(req)) return Response.json({ error: 'Unauthorised' }, { status: 401 });
   const result = await runAllImports('cron');
-  return Response.json(result);
+  // Wikivoyage sights and activities change slowly: refresh every two weeks.
+  const wikivoyage = (await wikivoyageDue()) ? await importWikivoyage().catch((e: Error) => ({ error: e.message })) : 'not due';
+  return Response.json({ ...result, wikivoyage });
 }

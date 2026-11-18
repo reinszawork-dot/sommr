@@ -1,6 +1,14 @@
 import {
   CalendarDays,
+  Camera,
   Coffee,
+  Compass,
+  Droplets,
+  Gamepad2,
+  Landmark,
+  MountainSnow,
+  PawPrint,
+  Wine,
   Disc3,
   Drama,
   Flame,
@@ -42,6 +50,14 @@ const ICONS: Record<string, LucideIcon> = {
   trophy: Trophy,
   calendar: CalendarDays,
   'map-pin': MapPin,
+  landmark: Landmark,
+  'paw-print': PawPrint,
+  droplets: Droplets,
+  wine: Wine,
+  'gamepad-2': Gamepad2,
+  'mountain-snow': MountainSnow,
+  camera: Camera,
+  compass: Compass,
 };
 
 export const ICON_NAMES = Object.keys(ICONS);

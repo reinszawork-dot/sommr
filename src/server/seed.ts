@@ -39,6 +39,7 @@ export async function seed(db: Queryable): Promise<{ categories: number; challen
 }
 
 export async function seedIfEmpty(db: Db): Promise<void> {
-  const [{ n }] = await db.query<{ n: number }>(sql`select count(*)::int as n from categories`);
+  // Challenges, not categories: migrations add categories of their own, and that must not skip the seed.
+  const [{ n }] = await db.query<{ n: number }>(sql`select count(*)::int as n from challenges`);
   if (n === 0) await seed(db);
 }

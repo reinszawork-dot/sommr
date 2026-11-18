@@ -109,7 +109,7 @@ export function Welcome() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-[1240px] flex-col gap-2 px-5 py-8 text-xs text-ink-3 sm:flex-row sm:justify-between sm:px-8">
-          <p>© {new Date().getFullYear()} SOMMR · A NextWave Digital app</p>
+          <p>© {new Date().getFullYear()} SOMMR · A NextWave Digital app · <Link href="/organisers" className="underline">Organisers: list your event</Link></p>
           <p>
             Map data © <a className="underline" href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> · Photography via{' '}
             <a className="underline" href="https://unsplash.com">Unsplash</a>

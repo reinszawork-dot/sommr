@@ -32,11 +32,21 @@ const eventSchema = z.object({
   category_slug: z.string().min(1, 'Choose a type'),
   link: url.refine((v) => v !== '', 'Add a link to the official listing so we can check it'),
   description: z.string().trim().max(2000),
+  organiser: z.string().trim().max(120),
+  time_tbc: z.boolean(),
+  photos: z
+    .string()
+    .transform((s) => s.split(/\s+/).filter(Boolean))
+    .refine((list) => list.length <= 3, 'Up to 3 photo links')
+    .refine((list) => list.every((p) => /^https:\/\/\S+$/i.test(p) && p.length <= 500), 'Photo links must start with https://'),
 });
 
 export async function submitEventAction(_: SubmitState, form: FormData): Promise<SubmitState> {
   const user = await requireUser();
-  const parsed = eventSchema.safeParse(Object.fromEntries(['title', 'starts_at', 'venue_name', 'city_slug', 'category_slug', 'link', 'description'].map((k) => [k, String(form.get(k) ?? '')])));
+  const parsed = eventSchema.safeParse({
+    ...Object.fromEntries(['title', 'starts_at', 'venue_name', 'city_slug', 'category_slug', 'link', 'description', 'organiser', 'photos'].map((k) => [k, String(form.get(k) ?? '')])),
+    time_tbc: form.get('time_tbc') === 'on',
+  });
   if (!parsed.success) return errs(parsed.error);
   const v = parsed.data;
   const startsAt = parseSaDateTime(v.starts_at);
@@ -45,8 +55,10 @@ export async function submitEventAction(_: SubmitState, form: FormData): Promise
   if (!(await rateLimit(`submit:${user.id}`, 10, 86_400))) return { error: 'You’ve made a lot of suggestions today — thank you! Try again tomorrow.' };
   const city = getCity(v.city_slug)!;
   await query(sql`
-    insert into events (source, title, description, category_slug, starts_at, venue_name, city_slug, ticket_url, source_url, status, submitted_by)
-    values ('community', ${v.title}, ${v.description || null}, ${v.category_slug}, ${startsAt}, ${v.venue_name}, ${city.slug}, ${v.link}, ${v.link}, 'pending', ${user.id})`);
+    insert into events (source, title, description, category_slug, starts_at, time_tbc, venue_name, city_slug, ticket_url, source_url, organiser,
+      image_url, gallery, status, submitted_by)
+    values ('community', ${v.title}, ${v.description || null}, ${v.category_slug}, ${startsAt}, ${v.time_tbc}, ${v.venue_name}, ${city.slug}, ${v.link}, ${v.link},
+      ${v.organiser || null}, ${v.photos[0] ?? null}, ${v.photos.slice(1)}, 'pending', ${user.id})`);
   return { ok: true };
 }
 
