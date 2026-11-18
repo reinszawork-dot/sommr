@@ -61,11 +61,35 @@ const placeSchema = z.object({
   description: z.string().trim().max(1000).optional(),
 });
 
-const bodySchema = z.discriminatedUnion('kind', [eventSchema, placeSchema]);
+// An events feed SOMMR can import by itself (Admin → Imports); filed disabled until the owner enables it.
+const sourceSchema = z.object({
+  kind: z.literal('source'),
+  feed: z.enum(['ical', 'jsonld']),
+  name: z.string().trim().min(2).max(120),
+  url: link,
+  city_slug: city.optional(),
+  category_slug: z.string().optional(),
+});
+
+const bodySchema = z.discriminatedUnion('kind', [eventSchema, placeSchema, sourceSchema]);
 
 export async function GET(req: Request) {
   if (!env.AGENT_SECRET) return apiError(503, 'AGENT_SECRET is not configured.');
   if (!authorised(req)) return apiError(401, 'Unauthorised');
+  const list = new URL(req.url).searchParams.get('list');
+  // What's live on SOMMR, for the freshness checker and weekend planner.
+  if (list === 'events') {
+    return json({ events: await query(sql`
+      select id, title, starts_at, ends_at, venue_name, city_slug, category_slug, price_min, is_free, ticket_url, source_url, image_url, featured
+      from events where status = 'published' and starts_at < now() + interval '60 days'
+        and coalesce(ends_at, starts_at + interval '6 hours') > now()
+      order by starts_at limit 400`) });
+  }
+  if (list === 'places') {
+    return json({ places: await query(sql`
+      select id, name, category_slug, address, city, website, updated_at from places
+      where status = 'published' and source <> 'osm' order by updated_at limit 400`) });
+  }
   const cats = await getCategories();
   return json({
     eventCategories: cats.filter((c) => c.kind === 'event' && c.active).map((c) => ({ slug: c.slug, label: c.label })),
@@ -80,6 +104,16 @@ export async function POST(req: Request) {
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return apiError(400, parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '));
   const v = parsed.data;
+  if (v.kind === 'source') {
+    if (v.category_slug && !(await maybeOne(sql`select 1 from categories where slug = ${v.category_slug} and kind = 'event'`))) {
+      return apiError(400, 'category_slug: not an event category (GET this endpoint for the list)');
+    }
+    if (await maybeOne(sql`select 1 from event_sources where url = ${v.url}`)) return json({ status: 'duplicate' });
+    await query(sql`
+      insert into event_sources (kind, name, url, city_slug, default_category, enabled, last_message)
+      values (${v.feed}, ${v.name}, ${v.url}, ${v.city_slug ?? null}, ${v.category_slug ?? null}, false, 'Found by agent: test it with Run, then Enable')`);
+    return json({ status: 'pending' }, { status: 201 });
+  }
   if (!(await maybeOne(sql`select 1 from categories where slug = ${v.category_slug} and kind = ${v.kind}`))) {
     return apiError(400, `category_slug: not a ${v.kind} category (GET this endpoint for the list)`);
   }

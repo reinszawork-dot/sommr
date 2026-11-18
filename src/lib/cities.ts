@@ -36,6 +36,11 @@ export const CITIES: City[] = [
   { slug: 'polokwane', name: 'Polokwane', province: 'Limpopo', lat: -23.9045, lng: 29.4689, coastal: false, events: false },
   { slug: 'rustenburg', name: 'Rustenburg', province: 'North West', lat: -25.6676, lng: 27.2421, coastal: false, events: false },
   { slug: 'kimberley', name: 'Kimberley', province: 'Northern Cape', lat: -28.7282, lng: 24.7499, coastal: false, events: false },
+  { slug: 'paarl', name: 'Paarl', province: 'Western Cape', lat: -33.7342, lng: 18.9621, coastal: false, events: false },
+  { slug: 'hilton', name: 'Hilton', province: 'KwaZulu-Natal', lat: -29.5486, lng: 30.3036, coastal: false, events: false },
+  { slug: 'howick', name: 'Howick', province: 'KwaZulu-Natal', lat: -29.4778, lng: 30.2297, coastal: false, events: false },
+  { slug: 'scottburgh', name: 'Scottburgh', province: 'KwaZulu-Natal', lat: -30.2861, lng: 30.7531, coastal: true, events: false },
+  { slug: 'magaliesburg', name: 'Magaliesburg', province: 'Gauteng', lat: -25.9989, lng: 27.542, coastal: false, events: false },
 ];
 
 export const EVENT_CITIES = CITIES.filter((c) => c.events);

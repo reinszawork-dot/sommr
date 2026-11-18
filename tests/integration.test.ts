@@ -241,6 +241,20 @@ describe('agent inbox', () => {
     expect((await call('POST', { ...bare, title: 'Http photo', images: ['http://example.com/x.jpg'] })).status).toBe(400);
   });
 
+  it('files feeds as disabled import sources and lists what is live', async () => {
+    const feed = { kind: 'source', feed: 'ical', name: 'Test venue calendar', url: 'https://example.com/venue.ics', city_slug: 'paarl' };
+    expect((await call('POST', feed)).status).toBe(201);
+    expect((await call('POST', feed)).body.status).toBe('duplicate');
+    const s = await db.one<{ enabled: boolean; kind: string }>(db.sql`select enabled, kind from event_sources where url = 'https://example.com/venue.ics'`);
+    expect(s).toEqual({ enabled: false, kind: 'ical' });
+    expect((await call('POST', { ...feed, url: 'https://example.com/x', feed: 'rss' })).status).toBe(400);
+    const { body } = await call('GET', undefined);
+    expect(body.cities.some((c: { slug: string }) => c.slug === 'paarl')).toBe(true);
+    const route = await import('@/app/api/agent/route');
+    const res = await route.GET(new Request('http://test/api/agent?list=events', { headers: { authorization: 'Bearer test-agent-secret' } }));
+    expect(Array.isArray((await res.json()).events)).toBe(true);
+  });
+
   it('files places as pending and refuses bad input', async () => {
     const place = {
       kind: 'place', name: 'Hidden test coffee', category_slug: 'coffee', address: '1 Church St, Hatfield',
