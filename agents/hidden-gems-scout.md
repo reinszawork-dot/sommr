@@ -2,7 +2,7 @@
 
 What to look for: independent coffee shops, braai and picnic spots, markets and padstals, viewpoints and waterfalls, swimming holes, quirky restaurants and small venues.
 
-Suggested schedule: Sunday at 10:17.
+Schedule: Wednesday and Sunday at about 10:30.
 
 ## 1. Connect
 Read the secret from `C:\Users\RENGE\.sommr\agent-secret.txt`. Never print it, and never put it in a file, chat or URL. In PowerShell:
@@ -58,7 +58,7 @@ Invoke-RestMethod https://sommr.vercel.app/api/agent -Method Post -Headers $h -C
 - Use the category slugs from step 1: `coffee` for cafÃ©s, `braai` for braai and picnic spots, and `markets`, `scenic`, `outdoors`, `restaurants` or `entertainment` for the rest.
 - The inbox replies `pending` (filed) or `duplicate` (already on SOMMR; that's fine, move on).
 - A 400 response says which field is wrong. Fix it once, or skip the place.
-- File at most 25 places per run.
+- File at most 40 places per run.
 
 ## 5. Report
 **Feedback report in Scout HQ (required).** At the end of every run, even one that found nothing or stopped early, add ONE document with `ArtifactData`: `action: "set"`, url https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA, `collection: "reports"`, `doc_id: "gems-<UTC time like 20261207T102512Z>"`, and `data`:
