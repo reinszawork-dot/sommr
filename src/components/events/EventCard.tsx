@@ -9,10 +9,15 @@ import { formatDayNumber, formatMonthShort, formatTime, formatWeekday, relativeD
 import { saveEventAction } from '@/server/actions/activity';
 import { priceLabel, type EventRow } from '@/server/events/service';
 
-export function eventWhen(e: Pick<EventRow, 'starts_at' | 'all_day' | 'ends_at'>): string {
+/** Start time as people should read it: never a made-up time when the organiser hasn't announced one. */
+export function startTime(e: Pick<EventRow, 'starts_at' | 'all_day' | 'time_tbc'>): string {
+  return e.all_day ? 'All day' : e.time_tbc ? 'Time TBC' : formatTime(e.starts_at);
+}
+
+export function eventWhen(e: Pick<EventRow, 'starts_at' | 'all_day' | 'ends_at' | 'time_tbc'>): string {
   const day = relativeDay(e.starts_at);
   if (e.all_day) return e.ends_at && relativeDay(e.ends_at) !== day ? `${day} – ${relativeDay(e.ends_at)}` : `${day} · All day`;
-  return `${day} · ${formatTime(e.starts_at)}`;
+  return `${day} · ${startTime(e)}`;
 }
 
 function DatePanel({ event, category, tall = false }: { event: EventRow; category?: CategoryLite; tall?: boolean }) {
@@ -89,8 +94,8 @@ export function EventRowItem({ event, category, showDistance }: { event: EventRo
       </div>
       <div className="min-w-0 flex-1 py-0.5">
         <p className="text-[0.78rem] font-semibold text-sun-deep">
-          {event.all_day ? 'All day' : formatTime(event.starts_at)}
-          {event.ends_at && !event.all_day && formatDayNumber(event.ends_at) === formatDayNumber(event.starts_at) ? ` – ${formatTime(event.ends_at)}` : ''}
+          {startTime(event)}
+          {event.ends_at && !event.all_day && !event.time_tbc && formatDayNumber(event.ends_at) === formatDayNumber(event.starts_at) ? ` – ${formatTime(event.ends_at)}` : ''}
         </p>
         <h3 className="mt-0.5 line-clamp-2 font-semibold leading-snug">
           <Link href={`/events/${event.id}`} transitionTypes={['nav-forward']} className="after:absolute after:inset-0">

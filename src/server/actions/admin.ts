@@ -8,7 +8,7 @@ import { ICON_NAMES } from '@/components/ui/Icon';
 import { parseSaDateTime, toSaLocalInput } from '@/lib/time';
 import { requireAdmin } from '../auth';
 import { maybeOne, query, sql } from '../db';
-import { publishAgentFinds } from '../services/agent-finds';
+import { applyFix, findDuplicateGroups, mergeDuplicates, publishAgentFinds, rejectWithReason } from '../services/agent-finds';
 import { assignCity, runAllImports, runSource, type EventSource, LOCKABLE_FIELDS } from '../events/importer';
 import { parseJsonLdEvents } from '../events/providers/jsonld';
 import { geocodeOne } from '../geocode';
@@ -373,6 +373,51 @@ export async function setPlaceStatusAction(id: string, status: 'published' | 're
   await requireAdmin();
   await query(sql`update places set status = ${status}, review_note = ${note ?? null}, updated_at = now() where id = ${id}`);
   revalidatePath('/', 'layout');
+}
+
+export async function rejectWithReasonAction(target: 'event' | 'place', id: string, reason: string) {
+  await requireAdmin();
+  await rejectWithReason(target, id, reason);
+  revalidatePath('/', 'layout');
+  return { status: 'ok', message: 'Rejected. The agents will see why.' };
+}
+
+export async function applyFixAction(id: string) {
+  await requireAdmin();
+  const ok = await applyFix(id);
+  revalidatePath('/', 'layout');
+  return ok ? { status: 'ok', message: 'Fix applied' } : { status: 'error', message: 'That fix no longer applies.' };
+}
+
+export async function dismissFixAction(id: string) {
+  await requireAdmin();
+  await query(sql`update agent_fixes set status = 'dismissed' where id = ${id} and status = 'pending'`);
+  revalidatePath('/admin', 'layout');
+  return { status: 'ok', message: 'Dismissed' };
+}
+
+export async function applyAllFixesAction() {
+  await requireAdmin();
+  const ids = await query<{ id: string }>(sql`select id from agent_fixes where status = 'pending' order by created_at`);
+  let n = 0;
+  for (const { id } of ids) if (await applyFix(id)) n++;
+  revalidatePath('/', 'layout');
+  return { status: 'ok', message: `Applied ${n} fix${n === 1 ? '' : 'es'}.` };
+}
+
+export async function mergeDuplicatesAction(keepId: string, dropIds: string[]) {
+  await requireAdmin();
+  await mergeDuplicates(keepId, dropIds);
+  revalidatePath('/', 'layout');
+  return { status: 'ok', message: 'Merged' };
+}
+
+export async function mergeAllDuplicatesAction() {
+  await requireAdmin();
+  const groups = await findDuplicateGroups();
+  for (const [keep, ...drop] of groups) await mergeDuplicates(keep.id, drop.map((d) => d.id));
+  revalidatePath('/', 'layout');
+  return { status: 'ok', message: `Merged ${groups.length} duplicate group${groups.length === 1 ? '' : 's'}.` };
 }
 
 /** Publish everything the research agents filed; see publishAgentFinds for how places are pinned. */

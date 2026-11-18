@@ -11,7 +11,9 @@ import { ProgressRing } from '@/components/ui/ProgressRing';
 import { cityPhoto } from '@/lib/photos';
 import { nextMilestone, seasonState } from '@/lib/season';
 import { sunTimes } from '@/lib/sun';
-import { dateKey, daysLeftInWeek, formatLongDate, formatTime, greeting } from '@/lib/time';
+import { startTime } from '@/components/events/EventCard';
+import { dateKey, daysLeftInWeek, formatLongDate, formatTime, formatWeekday } from '@/lib/time';
+import { listEvents } from '@/server/events/service';
 import type { SessionUser } from '@/server/auth';
 import { bucketProgress, listBucket } from '@/server/services/bucket';
 import { getCategoryMap } from '@/server/services/categories';
@@ -26,7 +28,8 @@ import { BucketPreview } from './BucketPreview';
 export async function Dashboard({ user, welcome }: { user: SessionUser; welcome: boolean }) {
   const loc = userLocation(user);
   const now = new Date();
-  const [daily, weekly, categories, weather, points, streak, progress, bucket] = await Promise.all([
+  const where = { city: loc.city.events ? loc.city.slug : null, near: loc.city.events ? null : { lat: loc.lat, lng: loc.lng, km: 40 } };
+  const [daily, weekly, categories, weather, points, streak, progress, bucket, weekend] = await Promise.all([
     getCurrentChallenge(user, 'daily', now),
     getCurrentChallenge(user, 'weekly', now),
     getCategoryMap(),
@@ -35,7 +38,14 @@ export async function Dashboard({ user, welcome }: { user: SessionUser; welcome:
     streaks(user.id, now),
     bucketProgress(user.id),
     listBucket(user.id),
+    listEvents({ ...where, when: 'weekend', limit: 12 }, user.id, now),
   ]);
+  // Lead with what's on this weekend; on a quiet weekend, the rest of the week. Editor's picks first.
+  const upcoming = weekend.length ? weekend : await listEvents({ ...where, when: 'week', limit: 12 }, user.id, now);
+  const heroEvents = [...upcoming].sort((a, b) => Number(b.featured) - Number(a.featured)).slice(0, 4);
+  const heroLabel = weekend.length ? `On this weekend in ${loc.city.name}` : `Coming up this week in ${loc.city.name}`;
+  const today = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', day: 'numeric', month: 'long' }).format(now);
+  const weekday = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', weekday: 'long' }).format(now);
   const season = seasonState(now);
   const milestone = nextMilestone(now);
   const sun = sunTimes(dateKey(now), loc.lat, loc.lng);
@@ -49,11 +59,9 @@ export async function Dashboard({ user, welcome }: { user: SessionUser; welcome:
       {/* ── Greeting & countdown ── */}
       <section className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
         <div className="flex flex-col justify-center py-2">
-          <p className="eyebrow fade-in">{formatLongDate(now)}</p>
+          <p className="eyebrow fade-in">{welcome ? `Welcome to SOMMR, ${firstName} · ` : ''}{weekday} · {loc.precise ? 'Near you' : loc.city.name}</p>
           <h1 className="display mt-3 text-[3rem] sm:text-6xl lg:text-[4.4rem]">
-            <WordReveal delay={80}>
-              {welcome ? 'Welcome' : greeting(now)}, <em className="text-sun-deep">{firstName}</em>.
-            </WordReveal>
+            <WordReveal delay={80}>{today}</WordReveal>
           </h1>
           <div className="stagger mt-5 space-y-2 text-[1.05rem] text-ink-2" style={{ ['--stagger' as string]: '90ms' }}>
             {weather && w ? (
@@ -82,6 +90,34 @@ export async function Dashboard({ user, welcome }: { user: SessionUser; welcome:
                 {nudge}
               </p>
             ) : null}
+          </div>
+          <div className="card mt-6 p-4" data-reveal="">
+            <div className="flex items-center justify-between gap-3 px-2">
+              <p className="eyebrow">{heroLabel}</p>
+              <Link href="/whats-on" className="inline-flex items-center gap-1 text-sm font-medium text-sun-deep hover:underline">
+                See all <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+            {heroEvents.length ? (
+              <ul className="mt-2">
+                {heroEvents.map((e) => (
+                  <li key={e.id}>
+                    <Link href={`/events/${e.id}`} className="flex items-center gap-3 rounded-2xl px-2 py-2 transition-colors hover:bg-sand">
+                      <span className="w-16 shrink-0 text-xs font-semibold leading-tight text-sun-deep">
+                        {formatWeekday(e.starts_at)}<br />{startTime(e)}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold">{e.title}</span>
+                        <span className="block truncate text-sm text-ink-3">{e.venue_name ?? 'Venue to be confirmed'}</span>
+                      </span>
+                      {e.featured ? <span className="tag tag-sun shrink-0">Pick</span> : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="px-2 pt-2 text-sm text-ink-3">Nothing listed for {loc.city.name} this week yet. Our scouts add new events every day.</p>
+            )}
           </div>
         </div>
 

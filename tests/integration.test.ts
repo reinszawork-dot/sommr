@@ -255,6 +255,67 @@ describe('agent inbox', () => {
     expect(Array.isArray((await res.json()).events)).toBe(true);
   });
 
+  it('marks unknown times as TBC and auto-publishes only trusted finds', async () => {
+    const { body: meta } = await call('GET');
+    const base = { kind: 'event', venue_name: 'ICC', city_slug: 'durban', category_slug: meta.eventCategories[0].slug };
+    expect((await call('POST', { ...base, title: 'TBC test gig', starts_at: future(20).toISOString(), source_url: 'https://example.com/a', time_tbc: true })).body.status).toBe('pending');
+    const trusted = { ...base, title: 'Trusted test gig', starts_at: future(21).toISOString(), source_url: 'https://www.quicket.co.za/events/1-x/', images: ['https://example.com/p.jpg'] };
+    expect((await call('POST', trusted)).body.status).toBe('published');
+    const rows = await db.query<{ title: string; time_tbc: boolean; status: string }>(db.sql`select title, time_tbc, status from events where title in ('TBC test gig', 'Trusted test gig') order by title`);
+    expect(rows).toEqual([{ title: 'TBC test gig', time_tbc: true, status: 'pending' }, { title: 'Trusted test gig', time_tbc: false, status: 'published' }]);
+  });
+
+  it('lists agent places with their source link', async () => {
+    await db.query(db.sql`insert into places (source, name, category_slug, lat, lng, address, city, status, review_note)
+      values ('community', 'Listed agent cafe', 'coffee', -25.75, 28.23, '1 Main', 'Pretoria', 'published', 'Found by agent. Source: https://example.com/cafe')`);
+    const route = await import('@/app/api/agent/route');
+    const res = await route.GET(new Request('http://test/api/agent?list=places', { headers: { authorization: 'Bearer test-agent-secret' } }));
+    const { places } = await res.json();
+    expect(places.find((p: { name: string }) => p.name === 'Listed agent cafe').source_url).toBe('https://example.com/cafe');
+  });
+
+  it('applies fix suggestions but never touches locked fields', async () => {
+    const svc = await import('@/server/services/agent-finds');
+    const ev = await db.one<{ id: string }>(db.sql`select id from events where title = 'Trusted test gig'`);
+    await db.query(db.sql`update events set locked_fields = '{venue_name}' where id = ${ev.id}`);
+    const fix = { kind: 'fix', target: 'event', id: ev.id, reason: 'Sold out on Quicket', source_url: 'https://example.com/s', changes: { sold_out: true, venue_name: 'Elsewhere' } };
+    expect((await call('POST', fix)).status).toBe(201);
+    expect((await call('POST', fix)).body.status).toBe('duplicate');
+    expect((await call('POST', { ...fix, changes: { title: 'Hacked' } })).status).toBe(400);
+    const f = await db.one<{ id: string }>(db.sql`select id from agent_fixes where target_id = ${ev.id}`);
+    expect(await svc.applyFix(f.id)).toBe(true);
+    const after = await db.one<{ sold_out: boolean; venue_name: string }>(db.sql`select sold_out, venue_name from events where id = ${ev.id}`);
+    expect(after).toEqual({ sold_out: true, venue_name: 'ICC' });
+    expect(await svc.applyFix(f.id)).toBe(false); // already applied
+  });
+
+  it('keeps rejection reasons for the agents to read', async () => {
+    const svc = await import('@/server/services/agent-finds');
+    const ev = await db.one<{ id: string }>(db.sql`select id from events where title = 'TBC test gig'`);
+    await svc.rejectWithReason('event', ev.id, 'Too far out of town');
+    const route = await import('@/app/api/agent/route');
+    const res = await route.GET(new Request('http://test/api/agent?list=rejected', { headers: { authorization: 'Bearer test-agent-secret' } }));
+    const { rejected } = await res.json();
+    expect(rejected.find((r: { name: string }) => r.name === 'TBC test gig')).toMatchObject({ reason: 'Too far out of town', source_url: 'https://example.com/a' });
+  });
+
+  it('merges duplicate listings into the best one', async () => {
+    const svc = await import('@/server/services/agent-finds');
+    const when = future(30);
+    const a = await db.one<{ id: string }>(db.sql`insert into events (source, title, category_slug, starts_at, city_slug, status)
+      values ('admin', 'Carols & Kilts at Shongweni', ${(await db.one<{ slug: string }>(db.sql`select slug from categories where kind = 'event' limit 1`)).slug}, ${when}, 'durban', 'published') returning id`);
+    const b = await db.one<{ id: string }>(db.sql`insert into events (source, title, category_slug, starts_at, city_slug, status, image_url, ticket_url)
+      select 'admin', 'Carols and Kilts Shongweni 2026', category_slug, starts_at, city_slug, 'published', 'https://example.com/c.jpg', 'https://www.howler.co.za/e/1'
+      from events where id = ${a.id} returning id`);
+    await db.query(db.sql`insert into saved_events (user_id, event_id) values (${userId}, ${a.id})`);
+    const group = (await svc.findDuplicateGroups()).find((g) => g.some((e) => e.id === a.id))!;
+    expect(group.map((e) => e.id)).toEqual([b.id, a.id]); // the one with photos and a ticket link is kept
+    await svc.mergeDuplicates(group[0].id, [a.id]);
+    const rows = await db.query<{ id: string; status: string }>(db.sql`select id, status from events where id in (${a.id}, ${b.id})`);
+    expect(rows.find((r) => r.id === a.id)!.status).toBe('rejected');
+    expect(await db.maybeOne(db.sql`select 1 from saved_events where user_id = ${userId} and event_id = ${b.id}`)).toBeTruthy();
+  });
+
   it('files places as pending and refuses bad input', async () => {
     const place = {
       kind: 'place', name: 'Hidden test coffee', category_slug: 'coffee', address: '1 Church St, Hatfield',

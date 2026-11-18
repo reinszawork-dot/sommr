@@ -16,7 +16,7 @@ export async function GET(_: Request, ctx: RouteContext<'/api/events/[id]/ics'>)
     description: [e.description, e.ticket_url ? `Tickets: ${e.ticket_url}` : null, `${env.APP_URL}/events/${e.id}`].filter(Boolean).join('\n\n'),
     start: e.starts_at,
     end: e.ends_at,
-    allDay: e.all_day,
+    allDay: e.all_day || e.time_tbc, // no announced time: a calendar all-day entry, not a guessed hour
     location: [e.venue_name, e.address].filter(Boolean).join(', ') || null,
     url: `${env.APP_URL}/events/${e.id}`,
   });

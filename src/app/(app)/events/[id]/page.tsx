@@ -10,6 +10,8 @@ import { MiniMap } from '@/components/common/MiniMap';
 import { SaveButton } from '@/components/common/SaveButton';
 import { ShareButton } from '@/components/common/ShareButton';
 import { DatePanel } from '@/components/events/EventCard';
+import { EventGallery } from '@/components/events/EventGallery';
+import { isTicketSite } from '@/lib/tickets';
 import { ExpandableText } from '@/components/common/ExpandableText';
 import { directionsLinks } from '@/components/explore/mapStyle';
 import { getCity } from '@/lib/cities';
@@ -25,8 +27,6 @@ export async function generateMetadata({ params }: PageProps<'/events/[id]'>): P
   const e = await getEvent(id, null);
   return { title: e?.title ?? 'Event' };
 }
-
-const TICKET_SITES = /^https?:\/\/([a-z0-9-]+\.)*(quicket\.co\.za|howler\.co\.za|webtickets\.co\.za|computicket\.com|ticketmaster\.co\.za|ticketpro\.co\.za|plankton\.mobi|tixsa\.co\.za|itickets\.co\.za|nutickets\.co\.za)\//i;
 
 const SOURCE_LABEL: Record<string, string> = {
   ticketmaster: 'Ticketmaster',
@@ -50,7 +50,8 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
   const ended = (e.ends_at ?? new Date(e.starts_at.getTime() + 6 * 3_600_000)) < new Date();
   const multiDay = e.ends_at && formatLongDate(e.ends_at) !== formatLongDate(e.starts_at);
   // Only a ticketing site counts as "Get tickets": agents sometimes give a listing article as the ticket link.
-  const ticketLink = !!e.ticket_url && TICKET_SITES.test(e.ticket_url);
+  const ticketLink = isTicketSite(e.ticket_url);
+  const photos = [e.image_url, ...e.gallery].filter((p): p is string => !!p);
   const linkLabel = !ticketLink ? 'Event info' : e.is_free ? 'Event details' : 'Get tickets';
   const photoHost = (() => { try { return new URL(e.image_url ?? '').hostname.replace(/^www\./, ''); } catch { return null; } })();
   const location = [e.venue_name, e.address && e.address !== e.venue_name ? e.address : null, !e.address ? city?.name : null].filter(Boolean).join(', ');
@@ -77,9 +78,8 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
         <div>
           <ViewTransition name={`event-media-${e.id}`} share="morph" default="none">
           <div className="relative overflow-hidden rounded-[26px] border border-line">
-            {e.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={e.image_url} alt="" className="aspect-[16/9] w-full object-cover" />
+            {photos.length ? (
+              <EventGallery photos={photos} title={e.title} />
             ) : (
               <div className="aspect-[16/9]">
                 <DatePanel event={e} category={cat} />
@@ -87,20 +87,15 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
             )}
           </div>
           </ViewTransition>
-          {e.gallery.length > 0 ? (
-            <div className="mt-3 grid grid-cols-3 gap-3">
-              {e.gallery.slice(0, 3).map((src) => (
-                <a key={src} href={src} target="_blank" rel="noopener noreferrer nofollow" className="block overflow-hidden rounded-2xl border border-line" aria-label="Open photo">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
-                </a>
-              ))}
-            </div>
-          ) : null}
-          {e.image_url && photoHost ? <p className="mt-2 text-xs text-ink-3">Photos: {photoHost}</p> : null}
+          {photos.length && photoHost ? (
+            <p className="mt-2 text-xs text-ink-3">Photos: {photoHost}</p>
+          ) : (
+            <p className="mt-2 text-xs text-ink-3">No photos of this event yet. Our scouts add the organiser’s photos as they find them.</p>
+          )}
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <CategoryPill category={cat} />
             {price ? <span className="tag tag-sea">{price}</span> : null}
+            {e.sold_out ? <span className="tag tag-danger">Sold out</span> : null}
             {e.featured ? <span className="tag tag-sun">Editor’s pick</span> : null}
           </div>
           <h1 className="display mt-3 text-[2.6rem] sm:text-5xl">
@@ -125,7 +120,9 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
                     ? multiDay
                       ? `Until ${formatLongDate(e.ends_at!)}`
                       : 'All day'
-                    : `${formatTime(e.starts_at)}${e.ends_at ? ` – ${multiDay ? `${formatLongDate(e.ends_at)}, ` : ''}${formatTime(e.ends_at)}` : ''}`}
+                    : e.time_tbc
+                      ? `Time to be confirmed by the organiser${multiDay ? ` · until ${formatLongDate(e.ends_at!)}` : ''}`
+                      : `${formatTime(e.starts_at)}${e.ends_at ? ` – ${multiDay ? `${formatLongDate(e.ends_at)}, ` : ''}${formatTime(e.ends_at)}` : ''}`}
                 </p>
               </div>
             </div>
@@ -150,9 +147,11 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
               <div className="flex items-start gap-3">
                 <Ticket size={19} className="mt-0.5 text-sun-deep" aria-hidden="true" />
                 <div>
-                  <p className="font-semibold">{e.is_free ? 'Free entry' : price ?? 'Price not listed'}</p>
+                  <p className="font-semibold">{e.sold_out ? 'Sold out' : e.is_free ? 'Free entry' : price ?? 'Price not listed'}</p>
                   <p className="text-sm text-ink-3">
-                    {ticketLink ? (e.is_free ? 'Booking link below' : 'Tickets sold online') : e.is_free || price ? 'No online tickets listed' : 'Check the event info for prices'}
+                    {e.sold_out
+                      ? 'The organiser reports no tickets left'
+                      : ticketLink ? (e.is_free ? 'Booking link below' : 'Tickets sold online') : e.is_free || price ? 'No online tickets listed' : 'Check the event info for prices'}
                   </p>
                 </div>
               </div>

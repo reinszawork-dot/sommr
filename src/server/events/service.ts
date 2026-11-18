@@ -25,6 +25,8 @@ export interface EventRow {
   ticket_url: string | null;
   image_url: string | null;
   gallery: string[];
+  time_tbc: boolean;
+  sold_out: boolean;
   organiser: string | null;
   status: string;
   featured: boolean;
