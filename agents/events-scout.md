@@ -33,6 +33,19 @@ Use web search (Google-style queries) for events in the next 8 weeks. Priority: 
 - If a Facebook or Instagram page asks for a login, use only what the search result itself shows, and only if it clearly states the event name, date and venue. Otherwise skip it.
 - Prefer official sources: ticket sites, organiser pages and venue pages.
 
+## 2a. Ticketing sites round (every run)
+Go through South Africa's four big ticketing sites. These are the best sources: real dates, venues, prices, ticket links and official photos.
+- **Quicket:** https://www.quicket.co.za/events/. Browse the listing (it has several pages) and filter or search by city.
+- **Webtickets:** https://www.webtickets.co.za/
+- **Computicket:** https://computicket.com/. Browse the categories (music, theatre, festivals, family).
+- **Ticketpro:** https://www.ticketpro.co.za/
+
+How:
+- Open each site's listings for this run's priority cities (step 1c), plus whatever else looks good for summer: music, festivals, markets, comedy, theatre, family days, outdoor and sport events.
+- Open the event page itself for each event you file. Use it as both `source_url` and `ticket_url`, take the details from it, and take up to 4 of its own photos for `images`. A known start time plus photos lets it go live at once.
+- **Skip** business seminars, conferences, church services, courses, webinars and private functions. They aren't what SOMMR is for.
+- Keep it light: open at most about 40 pages across the four sites per run, with a pause between pages. If a site blocks you or shows a CAPTCHA, skip that site for this run and say so in the report.
+
 ## 2b. Facebook and Instagram (the owner's own Chrome)
 The owner allows you to look through Facebook and Instagram in their Chrome, where they are already signed in. Use the Claude in Chrome tools (`mcp__claude-in-chrome__*`): load them with one ToolSearch call, and open a new tab for your work.
 - **Read only.** Never like, follow, comment, message, share, post, join, RSVP, accept a cookie or terms dialog beyond the minimum, or change any setting.
