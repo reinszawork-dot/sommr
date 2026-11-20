@@ -1,0 +1,679 @@
+<title>Scout HQ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;800&family=Patrick+Hand&display=swap">
+<style>
+/* Layout: a summer beach shack. The office sits on the sand in a wooden frame up top, each worker gets a wooden-sign panel,
+   then reports and a chalkboard log. One committed daylight look (no light/dark switch): every colour is set here. */
+:root {
+  --sand: #f4e4c1; --sand-2: #ead19d; --sand-dot: #d9b77a; --paper: #fffaf0; --ink: #2a2118; --muted: #6b5a45; --line: #e2cfa8;
+  --wood: #9a6a3f; --wood-dark: #6a4524; --wood-light: #c89b6a; --rope: #d8b98a;
+  --sky-a: #ff9d5c; --sky-b: #ffcf8a; --sun: #ffd45c; --sea: #1fa6b8; --sea-deep: #0e6f8a; --foam: #e9fbff;
+  --leaf: #2f8f4e; --leaf-2: #57b56a; --chalk-bg: #2f4a3e; --chalk: #f4f1e8; --chalk-dim: #b8c7b9;
+  --ok: #2f9e55; --bad: #d64535; --off: #b9a98c;
+  --plastic: #f2efe8; --plastic-f: #dcd6c8; --plastic-s: #c7bfae; --crt: #0e2b33; --glow: #6fe3f0;
+  --skin: #f0c39c; --shorts: #2b4fa0; --flop: #ff5ea8; --hair: #3a2416;
+  --events: #ff6b4a; --gems: #13a89e; --sources: #7b5cff; --checker: #f2b400; --deals: #ff4f9a; --planner: #2f7fe0;
+  --font-display: "Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-chalk: "Patrick Hand", "Comic Sans MS", cursive;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  background-color: var(--sand);
+  background-image: radial-gradient(circle, var(--sand-dot) 0 1px, transparent 1.5px), linear-gradient(var(--sky-b), var(--sand) 420px);
+  background-size: 14px 14px, 100% 100%;
+  color: var(--ink); font: 15px/1.55 var(--font-body);
+}
+.page { max-width: 1120px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+
+/* ── Header ── */
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px; }
+h1 { margin: 0; font: 400 clamp(2.4rem, 7vw, 4rem)/1 var(--font-display); color: var(--paper); letter-spacing: .01em;
+  text-shadow: 0 3px 0 var(--wood-dark), 0 6px 0 rgba(106, 69, 36, .35); }
+.sub { margin: 10px 0 0; max-width: 62ch; color: var(--ink); font-weight: 600; }
+.live { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--paper); border: 2px solid var(--wood-dark); font: 800 13px var(--font-body); color: var(--ink); }
+.live i { width: 10px; height: 10px; border-radius: 50%; background: var(--off); }
+.live[data-on="true"] i { background: var(--ok); box-shadow: 0 0 0 4px rgba(47, 158, 85, .25); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(47, 158, 85, 0); } }
+
+/* ── Wooden-sign panels ── */
+.win { background: var(--paper); border: 3px solid var(--wood-dark); border-radius: 16px; overflow: hidden; box-shadow: 0 6px 0 rgba(106, 69, 36, .22); min-width: 0; }
+.titlebar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; min-width: 0;
+  background: repeating-linear-gradient(0deg, var(--wood) 0 9px, var(--wood-light) 9px 10px, var(--wood) 10px 19px, var(--wood-dark) 19px 20px);
+  color: var(--paper); font: 18px/1.2 var(--font-display); letter-spacing: .02em; text-shadow: 0 2px 0 var(--wood-dark); }
+.titlebar .t-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.titlebar .t-btns { display: none; }
+.win-body { padding: 16px; display: grid; gap: 12px; }
+
+/* ── The shack ── */
+.office .win-body { padding: 8px; }
+.wrap { position: relative; overflow: hidden; border-radius: 10px; background: linear-gradient(var(--sky-a), var(--sky-b) 55%, var(--sand) 100%); }
+.wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 50% 40%, transparent 60%, rgba(106, 69, 36, .25)); }
+/* Sunrise on load, played on a cover layer: filters or clipping on the 3D scene itself make Chrome paint parts of it wrong. */
+.wrap::before { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; background: linear-gradient(#ff7a45, #ffcf8a); }
+.wrap.boot::before { animation: sunrise 1.4s ease-out; }
+@keyframes sunrise { 0%, 25% { opacity: 1; } 100% { opacity: 0; } }
+.neon-sign { position: absolute; top: 14px; left: 16px; z-index: 2; pointer-events: none; }
+.neon { font: 22px/1 var(--font-display); color: var(--paper); padding: 8px 16px; border-radius: 8px; white-space: nowrap; transform: rotate(-3deg);
+  background: repeating-linear-gradient(0deg, var(--wood) 0 10px, var(--wood-dark) 10px 11px); border: 3px solid var(--wood-dark); text-shadow: 0 2px 0 var(--wood-dark);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, .2); animation: sway 5s ease-in-out infinite; transform-origin: 50% -20px; }
+@keyframes sway { 50% { transform: rotate(2deg); } }
+.stage { position: absolute; top: 0; transform-origin: top left; perspective: 1800px; }
+.scene { position: absolute; left: 50%; top: 60%; transform-style: preserve-3d; transform: rotateX(60deg) rotateZ(45deg); }
+.box, .bb { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+.f { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; }
+.floor { position: absolute; inset: 0; background-color: #f2dca9; background-image: radial-gradient(circle, var(--sand-dot) 0 1.5px, transparent 2px), radial-gradient(circle, #fff3d6 0 1px, transparent 1.5px);
+  background-size: 22px 22px, 16px 16px; background-position: 0 0, 8px 11px; }
+.rug { position: absolute; left: 18px; top: 26px; width: 524px; height: 380px; border-radius: 6px;
+  background: repeating-linear-gradient(90deg, #c08a55 0 26px, #a8743f 26px 28px); box-shadow: 0 0 0 4px #8a5a2c; }
+.wall-back { background: linear-gradient(#ff9d5c, #ffcf8a 46%, var(--sea) 46%, var(--sea-deep) 100%); }
+.wall-back::after { content: ""; position: absolute; left: 0; right: 0; top: 46%; height: 18px; background: repeating-linear-gradient(90deg, transparent 0 30px, var(--foam) 30px 44px, transparent 44px 60px); opacity: .7; animation: waves 4s linear infinite; }
+@keyframes waves { to { background-position: 60px 0; } }
+.wall-left { background: repeating-linear-gradient(90deg, #d8b46a 0 16px, #c79d52 16px 18px, #e0c07c 18px 34px, #b98f45 34px 36px); }
+.wall-back::before, .wall-left::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 16px; z-index: 1;
+  background: radial-gradient(circle, #ffd45c 0 4px, transparent 5px) 0 0 / 34px 16px repeat-x, radial-gradient(circle, #ff6b4a 0 4px, transparent 5px) 17px 0 / 34px 16px repeat-x; }
+.window { position: absolute; left: 330px; top: 12px; width: 70px; height: 70px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 30px var(--sun); }
+.poster { position: absolute; left: 120px; top: 34px; display: flex; gap: 22px; }
+.poster span { width: 30px; height: 120px; border-radius: 15px; background: var(--events); box-shadow: inset -6px 0 0 rgba(0, 0, 0, .12); }
+.poster span:nth-child(2) { background: var(--gems); height: 132px; margin-top: -8px; } .poster span:nth-child(3) { background: var(--sun); } .poster span:nth-child(4) { background: var(--deals); height: 110px; margin-top: 8px; }
+.poster span:nth-child(n+5) { display: none; }
+.k-desk > .t { background: var(--wood-light); } .k-desk > .fr { background: var(--wood); } .k-desk > .sd { background: var(--wood-dark); }
+.k-mon > .t, .k-mon > .sd { background: var(--plastic-s); }
+.k-mon > .fr { background: var(--plastic-f); padding: 4px; }
+.screen { position: relative; width: 100%; height: 100%; background: var(--crt); overflow: hidden; border-radius: 3px; }
+.screen i { position: absolute; left: 4px; height: 3px; border-radius: 2px; background: var(--glow); display: none; animation: code 1.2s steps(4) infinite; }
+.screen i:nth-child(1) { top: 4px; width: 60%; } .screen i:nth-child(2) { top: 10px; width: 40%; animation-delay: .3s; } .screen i:nth-child(3) { top: 16px; width: 70%; animation-delay: .6s; }
+.screen b { position: absolute; width: 4px; height: 4px; border-radius: 50%; border: 1px solid var(--glow); animation: bubble 3s linear infinite; }
+.screen b:nth-child(4) { left: 20%; } .screen b:nth-child(5) { left: 55%; animation-delay: 1s; } .screen b:nth-child(6) { left: 80%; animation-delay: 2s; }
+.k-mon.on .screen { box-shadow: inset 0 0 10px var(--glow); }
+.k-mon.on .screen i { display: block; } .k-mon.on .screen b { display: none; }
+@keyframes code { 0% { transform: scaleX(.3); transform-origin: left; } 100% { transform: scaleX(1); transform-origin: left; } }
+@keyframes bubble { 0% { top: 100%; opacity: 0; } 30% { opacity: 1; } 100% { top: -10%; opacity: 0; } }
+.k-arcade > .t { background: #2b2b2b; } .k-arcade > .sd { background: #1a1a1a; }
+.k-arcade > .fr { background: #2b2b2b; padding: 6px; }
+.k-arcade .screen { height: 18px; border-radius: 2px; background: linear-gradient(90deg, #ff3d00, #ffb300, #ff3d00); background-size: 200% 100%; animation: coals 1.6s linear infinite; }
+@keyframes coals { to { background-position: 200% 0; } }
+.k-table > .t { background: #ffffff; } .k-table > .fr { background: #2f7fe0; } .k-table > .sd { background: #2566b5; }
+.k-boom > .t { background: #ffffff; } .k-boom > .fr { background: #e8eef5; } .k-boom > .sd { background: #cfd8e2; }
+.k-boom > .fr i { display: none; }
+.k-cooler > .t { background: #c08a55; } .k-cooler > .fr { background: #a8743f; } .k-cooler > .sd { background: #8a5a2c; }
+.k-pot > .t { background: #6a4524; } .k-pot > .fr { background: #c06a3b; } .k-pot > .sd { background: #9e5530; }
+
+.bb > div { position: absolute; bottom: 0; left: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; transform-style: preserve-3d; }
+.cactus { position: relative; width: 14px; height: 120px; background: repeating-linear-gradient(0deg, #8a5a2c 0 8px, #a8743f 8px 12px); border-radius: 6px; }
+.cactus::before { content: ""; position: absolute; left: -46px; top: -22px; width: 106px; height: 46px; border-radius: 50%;
+  background: radial-gradient(ellipse at 20% 60%, var(--leaf-2) 0 30%, transparent 32%), radial-gradient(ellipse at 80% 60%, var(--leaf-2) 0 30%, transparent 32%), radial-gradient(ellipse at 50% 40%, var(--leaf) 0 38%, transparent 40%);
+  animation: palm 4s ease-in-out infinite; transform-origin: 50% 80%; }
+@keyframes palm { 50% { transform: rotate(4deg); } }
+.lava { position: relative; width: 6px; height: 70px; background: #6a4524; border-radius: 3px; }
+.lava::before { content: ""; position: absolute; left: -7px; top: -6px; width: 20px; height: 12px; background: #8a5a2c; border-radius: 3px; }
+.lava i { position: absolute; left: -6px; top: -26px; width: 18px; height: 24px; border-radius: 50% 50% 40% 40%; background: radial-gradient(circle at 50% 70%, #fff3a0, #ff9d1f 45%, #ff4d1f 75%, transparent 76%); animation: flame .4s ease-in-out infinite alternate; }
+.lava i + i { display: none; }
+@keyframes flame { to { transform: scale(1.12, .92) translateY(2px); } }
+.smoke { position: relative; width: 40px; height: 60px; }
+.smoke i { position: absolute; bottom: 0; left: 14px; width: 14px; height: 14px; border-radius: 50%; background: rgba(255, 255, 255, .7); animation: smoke 3s ease-out infinite; }
+.smoke i:nth-child(2) { animation-delay: 1s; } .smoke i:nth-child(3) { animation-delay: 2s; }
+@keyframes smoke { 0% { transform: translate(0, 0) scale(.6); opacity: .8; } 100% { transform: translate(10px, -55px) scale(1.8); opacity: 0; } }
+.umbrella { position: relative; width: 120px; height: 110px; }
+.umbrella::before { content: ""; position: absolute; left: 0; top: 0; width: 120px; height: 46px; border-radius: 60px 60px 6px 6px;
+  background: repeating-conic-gradient(from -90deg at 50% 100%, var(--events) 0 22.5deg, var(--paper) 22.5deg 45deg); }
+.umbrella::after { content: ""; position: absolute; left: 58px; top: 40px; width: 4px; height: 70px; background: var(--paper); }
+.notes { font: 22px/1 var(--font-chalk); color: var(--wood-dark); animation: notes 2.4s ease-in-out infinite; }
+@keyframes notes { 0% { transform: translate(0, 0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(14px, -30px); opacity: 0; } }
+
+/* ── Workers: tank tops, boardshorts and flip-flops ── */
+.walker { transition-property: left, top; transition-timing-function: linear; }
+.sprite { transform: scaleX(var(--face, 1)); }
+.sprite svg { display: block; overflow: visible; shape-rendering: crispEdges; }
+.sprite .shirt { fill: var(--agent); } .sprite .skin { fill: var(--skin); } .sprite .hair { fill: var(--hair); } .sprite .jeans { fill: var(--shorts); }
+.sprite .shoe { fill: var(--flop); } .sprite .eye { fill: var(--ink); } .sprite .acc { fill: var(--acc, var(--ink)); } .sprite .shadow { fill: rgba(106, 69, 36, .3); }
+.sprite .shut { display: none; }
+.sprite[data-mood="off"]:not([data-act]) .open, .sprite[data-mood="off"][data-act=""] .open { display: none; }
+.sprite[data-mood="off"]:not([data-act]) .shut, .sprite[data-mood="off"][data-act=""] .shut { display: inline; }
+.sprite .arm-l, .sprite .arm-r, .sprite .leg-l, .sprite .leg-r, .sprite .head { transform-box: fill-box; }
+.sprite[data-mood="working"] .arm-l { animation: tap .32s steps(2) infinite; }
+.sprite[data-mood="working"] .arm-r { animation: tap .32s steps(2) infinite .16s; }
+.sprite[data-mood="working"] .head { animation: nod .64s steps(2) infinite; }
+@keyframes tap { 50% { transform: translateY(-1px); } }
+@keyframes nod { 50% { transform: translateY(1px); } }
+.sprite[data-mood="off"]:not([data-act]) .head, .sprite[data-mood="off"][data-act=""] .head { transform: translateY(1px); }
+.sprite[data-act="walk"] .leg-l { animation: step .4s steps(2) infinite; }
+.sprite[data-act="walk"] .leg-r { animation: step .4s steps(2) infinite .2s; }
+.sprite[data-act="walk"] svg { animation: hop .4s steps(2) infinite; }
+@keyframes step { 50% { transform: translateY(-2px); } }
+@keyframes hop { 50% { transform: translateY(-3px); } }
+.sprite[data-act="play"] .arm-l, .sprite[data-act="play"] .arm-r { animation: mash .3s steps(2) infinite; }
+@keyframes mash { 50% { transform: translateY(-2px); } }
+.sprite[data-act="dance"] svg, .sprite[data-mood="finished"] svg { animation: dance .9s steps(4) infinite; transform-origin: 50% 100%; }
+@keyframes dance { 0% { transform: rotate(-8deg); } 25% { transform: translateY(-8px) rotate(0); } 50% { transform: rotate(8deg); } 75% { transform: translateY(-8px) rotate(0); } 100% { transform: rotate(-8deg); } }
+.sprite[data-mood="stuck"] svg { animation: shake .3s steps(2) infinite; }
+@keyframes shake { 50% { transform: translateX(3px); } }
+.fx { position: relative; height: 0; width: 0; }
+.fx i { position: absolute; width: 6px; height: 6px; display: none; }
+.sprite[data-mood="working"] ~ .fx .bit { display: block; border-radius: 50%; background: var(--glow); animation: bit 1.6s ease-out infinite; }
+.fx .bit:nth-child(1) { left: -14px; } .fx .bit:nth-child(2) { left: 2px; animation-delay: .5s !important; } .fx .bit:nth-child(3) { left: 14px; animation-delay: 1s !important; }
+@keyframes bit { 0% { transform: translateY(-60px); opacity: 1; } 100% { transform: translateY(-120px); opacity: 0; } }
+.sprite[data-mood="finished"] ~ .fx .conf { display: block; animation: conf 1.8s ease-out infinite; }
+.fx .conf { top: -70px; left: 0; border-radius: 2px; }
+.fx .conf:nth-child(4) { background: var(--events); --dx: -40px; } .fx .conf:nth-child(5) { background: var(--gems); --dx: 40px; } .fx .conf:nth-child(6) { background: var(--sun); --dx: -24px; }
+.fx .conf:nth-child(7) { background: var(--sources); --dx: 26px; } .fx .conf:nth-child(8) { background: var(--deals); --dx: 8px; } .fx .conf:nth-child(9) { background: var(--planner); --dx: -6px; }
+@keyframes conf { 0% { transform: translate(0, 0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(var(--dx), -50px) rotate(180deg); opacity: 0; } }
+/* Bubbles stand tall, so at back-row desks they reached into the walls. Pull them toward the viewer (scaled back to size) so they always draw in front. */
+.say { margin-bottom: 6px; transform: translateZ(150px) scale(.92); transform-origin: 50% 100%; }
+.walker.roam .say { visibility: hidden; }
+.bubble { display: block; width: max-content; max-width: 190px; padding: 7px 11px; background: var(--paper); color: var(--ink); border: 2.5px solid var(--agent); border-radius: 14px; box-shadow: 0 4px 0 rgba(106, 69, 36, .25); font: 600 12.5px/1.3 var(--font-body); }
+.bubble b { display: block; color: var(--agent); font: 13px/1.3 var(--font-display); }
+.bubble.alert { background: var(--bad); color: var(--paper); border-color: var(--paper); animation: blink .8s steps(2) infinite; }
+.bubble.alert b { color: var(--paper); }
+@keyframes blink { 50% { opacity: .35; } }
+.zzz { display: block; color: var(--paper); font: 20px/1 var(--font-display); text-shadow: 0 2px 0 var(--wood-dark); animation: float 2.6s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-8px); opacity: 1; } }
+
+/* ── Worker panels ── */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 20px; }
+.card .titlebar, .report .titlebar { box-shadow: inset 0 -5px 0 var(--agent); }
+.ico { width: 26px; height: 26px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--agent); color: var(--agent-ink, #fff); border: 2px solid var(--paper); flex-shrink: 0; }
+.ico svg { width: 14px; height: 14px; }
+.role { margin: 0; color: var(--muted); font-size: 14px; font-weight: 600; }
+.status { display: flex; align-items: center; gap: 8px; font: 15px/1 var(--font-display); letter-spacing: .03em; }
+.status i { width: 12px; height: 12px; border-radius: 50%; background: var(--off); }
+.status[data-mood="working"] i { background: var(--ok); box-shadow: 0 0 0 4px rgba(47, 158, 85, .25); }
+.status[data-mood="finished"] i { background: var(--sea); }
+.status[data-mood="stuck"] i { background: var(--bad); animation: blink .6s steps(2) infinite; }
+.lcd { margin: 0; background: var(--chalk-bg); color: var(--chalk); padding: 10px 12px; border-radius: 10px; border: 4px solid var(--wood); font: 19px/1.2 var(--font-chalk); min-height: 58px; overflow-wrap: anywhere; }
+.when { margin: -6px 0 0; color: var(--muted); font-size: 12.5px; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.stats div { background: var(--sand); border: 2px dashed var(--rope); border-radius: 12px; padding: 6px 12px; }
+.stats dt { color: var(--muted); font-size: 12.5px; font-weight: 700; }
+.stats dd { margin: 0; font: 30px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.usage { margin: -4px 0 0; font-size: 13px; color: var(--muted); }
+.usage b { color: var(--ink); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: 800 13.5px var(--font-body); padding: 8px 16px; border-radius: 999px; background: var(--paper); color: var(--ink); cursor: pointer; border: 2px solid var(--wood-dark); box-shadow: 0 3px 0 var(--wood-dark); }
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 0 var(--wood-dark); }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-dark); }
+.btn:focus-visible, .day input:focus-visible + span, .sched input[type="time"]:focus-visible { outline: 3px solid var(--sea); outline-offset: 2px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-run { background: var(--agent); color: var(--agent-ink, #fff); }
+.ctl-note { margin: -4px 0 0; color: var(--muted); font-size: 12.5px; }
+.sched { border: 2px dashed var(--rope); border-radius: 12px; padding: 8px 12px 12px; margin: 0; display: grid; gap: 10px; min-width: 0; }
+.sched legend { padding: 0 6px; font: 14px/1.4 var(--font-display); color: var(--wood-dark); }
+.days { display: flex; flex-wrap: wrap; gap: 6px; }
+.day { position: relative; }
+.day input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.day span { display: inline-block; min-width: 44px; text-align: center; padding: 5px 8px; font: 800 12.5px var(--font-body); border-radius: 999px; background: var(--sand); border: 2px solid var(--line); }
+.day input:checked + span { background: var(--agent); color: var(--agent-ink, #fff); border-color: var(--agent); }
+.sched-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.time-label { color: var(--muted); font-size: 13px; font-weight: 700; }
+.sched input[type="time"] { font: 700 14px var(--font-body); padding: 6px 10px; border-radius: 10px; background: var(--paper); color: var(--ink); border: 2px solid var(--line); }
+
+/* ── Reports and the chalkboard ── */
+h2.section { margin: 0 0 12px; font: 400 clamp(1.5rem, 4vw, 2rem)/1.1 var(--font-display); color: var(--wood-dark); }
+.reports { display: grid; gap: 16px; }
+.report summary { cursor: pointer; list-style: none; }
+.report summary::-webkit-details-marker { display: none; }
+.report summary:focus-visible { outline: 3px solid var(--sea); outline-offset: -4px; }
+.report .r-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 12px 16px 0; }
+.report .r-title { font-weight: 800; flex: 1 1 260px; }
+.report time { color: var(--muted); font-size: 13px; }
+.report .r-body { display: grid; gap: 12px; padding: 12px 16px 16px; }
+.report h3 { margin: 0 0 4px; font: 15px/1.3 var(--font-display); color: var(--wood-dark); }
+.report ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.report li, .report p { overflow-wrap: anywhere; }
+.report p { margin: 0; }
+.report .detail { color: var(--muted); }
+.report a, .note a { color: var(--sea-deep); font-weight: 700; }
+.empty-card { padding: 16px; margin: 0; color: var(--muted); }
+.term .win-body { padding: 0; }
+.feed { list-style: none; margin: 0; padding: 12px 0; background: var(--chalk-bg); color: var(--chalk); font: 19px/1.3 var(--font-chalk); max-height: 460px; overflow: auto; border: 6px solid var(--wood); border-top: 0; }
+.feed li { display: grid; grid-template-columns: 12px 56px 150px 1fr; gap: 10px; padding: 3px 16px; }
+.feed li:first-child .msg::after { content: " _"; animation: blink 1s steps(2) infinite; }
+.dot { width: 9px; height: 9px; border-radius: 50%; align-self: center; background: var(--chalk-dim); }
+.dot[data-kind="filed"] { background: #7ee09a; } .dot[data-kind="error"] { background: #ff8a7a; } .dot[data-kind="duplicate"] { background: #6d8a7a; } .dot[data-kind="done"] { background: var(--sun); }
+.feed time { color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.feed .who { color: var(--agent); filter: brightness(1.35); }
+.msg { min-width: 0; overflow-wrap: anywhere; }
+.feed .empty { display: block; color: var(--chalk-dim); }
+.note { margin: 0; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+@media (max-width: 620px) { .feed li { grid-template-columns: 10px 50px 1fr; } .feed .who { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="page">
+  <header>
+    <div>
+      <h1>Scout HQ</h1>
+      <p class="sub">Your six SOMMR workers at the beach shack. Every step they take shows up here live, and what they find waits for your approval in SOMMR.</p>
+    </div>
+    <span class="live" id="live" data-on="false"><i></i><span id="live-text">Connecting</span></span>
+  </header>
+
+  <section class="win office" aria-label="The office">
+    <div class="titlebar"><span class="t-name">The beach shack</span><span class="t-btns" aria-hidden="true"><span>_</span><span>□</span><span>×</span></span></div>
+    <div class="win-body"><div class="wrap boot" id="wrap" aria-hidden="true"><div class="neon-sign"><div class="neon">Scout HQ</div></div><div class="stage" id="stage"><div class="scene" id="scene"></div></div></div></div>
+  </section>
+
+  <div class="cards" id="cards"></div>
+
+  <section aria-labelledby="reports-title">
+    <h2 class="section" id="reports-title">Reports</h2>
+    <div class="reports" id="reports"><p class="win empty-card">No reports yet. Each worker files one here when a run finishes.</p></div>
+  </section>
+
+  <section class="win term" aria-labelledby="feed-title">
+    <div class="titlebar"><span class="t-name" id="feed-title">The chalkboard: what's happening</span><span class="t-btns" aria-hidden="true"><span>_</span><span>□</span><span>×</span></span></div>
+    <div class="win-body"><ol class="feed" id="feed"><li class="empty">Waiting for the first report. The workers post each step here while they run.</li></ol></div>
+  </section>
+
+  <p class="note">Approve their finds in <a href="https://sommr.vercel.app/admin/submissions" target="_blank" rel="noopener">SOMMR → Admin → Submissions</a>, and new feeds in <a href="https://sommr.vercel.app/admin/sources" target="_blank" rel="noopener">Admin → Imports</a>. Workers run on their schedules only while the Claude app is open.</p>
+</div>
+
+<script>
+const STAGE_W = 860, STAGE_H = 640, ROOM = 560, WALL = 170;
+const REDUCED = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+// Two rows of three desks on the deck; `task` is the scheduled task on the owner's PC. `ink` is text colour on the agent colour; `acc` its beach look.
+const AGENTS = {
+  events: { name: 'Events scout', role: 'Finds upcoming events', task: 'sommr-events-scout', desk: { x: 40, y: 50 }, ink: '#fff', acc: 'cap',
+    icon: svg('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>') },
+  gems: { name: 'Gems scout', role: 'Finds coffee shops, braai spots and hidden gems', task: 'sommr-hidden-gems-scout', desk: { x: 220, y: 50 }, ink: '#15121f', acc: 'shades',
+    icon: svg('<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/>') },
+  sources: { name: 'Source finder', role: 'Finds event feeds SOMMR can import by itself', task: 'sommr-source-finder', desk: { x: 400, y: 50 }, ink: '#fff', acc: 'phones',
+    icon: svg('<path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/>') },
+  checker: { name: 'Freshness checker', role: 'Checks live events and places for changes', task: 'sommr-freshness-checker', desk: { x: 40, y: 270 }, ink: '#15121f', acc: 'specs',
+    icon: svg('<path d="m6 12 4 4 8-9"/>') },
+  deals: { name: 'Deals scout', role: 'Finds free days, discounts and specials', task: 'sommr-deals-scout', desk: { x: 220, y: 270 }, ink: '#fff', acc: 'bucket',
+    icon: svg('<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/>') },
+  planner: { name: 'Weekend planner', role: 'Picks the best weekend events per city', task: 'sommr-weekend-planner', desk: { x: 400, y: 270 }, ink: '#fff', acc: 'bun',
+    icon: svg('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>') },
+};
+for (const [id, a] of Object.entries(AGENTS)) { a.color = `var(--${id})`; a.home = { x: a.desk.x + 62, y: a.desk.y + 108 }; }
+// Days are cron weekdays: 0 = Sunday. DEFAULT_SCHEDULE mirrors the tasks as first set up on the owner's PC.
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DEFAULT_SCHEDULE = {
+  events: { days: [0, 1, 2, 3, 4, 5, 6], time: '18:23' }, gems: { days: [0, 3], time: '10:29' }, sources: { days: [2], time: '14:17' },
+  checker: { days: [1, 5], time: '07:13' }, deals: { days: [3], time: '17:41' }, planner: { days: [4], time: '12:07' },
+};
+const validSchedule = (s) => s && Array.isArray(s.days) && s.days.length > 0 && s.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+  && typeof s.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s.time);
+const sameSchedule = (a, b) => validSchedule(a) && validSchedule(b) && a.time === b.time && [...a.days].sort().join() === [...b.days].sort().join();
+function scheduleText(s) {
+  const days = [...s.days].sort();
+  const label = days.length === 7 ? 'every day' : days.join() === '1,2,3,4,5' ? 'weekdays' : days.join() === '0,6' ? 'weekends' : days.map((d) => DAY_NAMES[d]).join(', ');
+  return `${label} at ${s.time}`;
+}
+const perAgent = (v) => Object.fromEntries(Object.keys(AGENTS).map((k) => [k, typeof v === 'function' ? v() : v]));
+const ACTIVE_MS = 10 * 60 * 1000;
+const controls = perAgent(() => ({})); // declared up here: render() reads it before the controls section runs
+const moods = perAgent('off');
+const MOOD_LABEL = { working: 'Working', finished: 'Done!', stuck: 'Needs you', off: 'Off duty' };
+
+// ── Build the office once ──
+function box(x, y, z, w, d, h, kind, inner = '', id = '') {
+  return `<div class="box ${kind}"${id ? ` id="${id}"` : ''} style="width:${w}px;height:${d}px;transform:translate3d(${x}px,${y}px,${z}px)">
+    <div class="f t" style="width:${w}px;height:${d}px;transform:translateZ(${h}px)"></div>
+    <div class="f fr" style="width:${w}px;height:${h}px;transform:matrix3d(1,0,0,0,0,0,-1,0,0,1,0,0,0,${d},${h},1)">${inner}</div>
+    <div class="f sd" style="width:${d}px;height:${h}px;transform:matrix3d(0,1,0,0,0,0,-1,0,1,0,0,0,${w},0,${h},1)"></div></div>`;
+}
+const billboard = (x, y, z, inner, attrs = '') => `<div class="bb"${attrs} style="left:${x}px;top:${y}px;transform:translateZ(${z}px) rotateZ(-45deg) rotateX(-60deg)"><div>${inner}</div></div>`;
+// A 16 × 25 pixel worker, drawn 3× size: tank top, boardshorts, flip-flops, and a beach accessory each.
+const px = (x, y, w, h, cls) => `<rect class="${cls}" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+const ACCESSORY = {
+  cap: px(3, 1, 10, 2, 'acc') + px(11, 3, 4, 1, 'acc'),
+  shades: px(5, 5, 7, 2, 'acc'),
+  phones: px(3, 0, 10, 1, 'acc') + px(2, 4, 2, 4, 'acc') + px(12, 4, 2, 4, 'acc'),
+  specs: px(5, 5, 3, 2, 'acc') + px(9, 5, 3, 2, 'acc') + px(8, 5, 1, 1, 'acc'),
+  bucket: px(3, 0, 10, 3, 'acc') + px(2, 3, 12, 1, 'acc'),
+  bun: px(6, -2, 4, 3, 'hair') + px(5, 0, 6, 1, 'acc'),
+};
+const ACC_COLOR = { cap: '#ffffff', shades: '#15121f', phones: '#2f7fe0', specs: '#15121f', bucket: '#f2d27a', bun: '#ff6b4a' };
+const sprite = (id) => {
+  const a = AGENTS[id];
+  return `<div class="sprite" id="sprite-${id}" data-mood="off" style="--agent:${a.color};--acc:${ACC_COLOR[a.acc]}">
+  <svg width="48" height="78" viewBox="0 -2 16 27">
+    <ellipse class="shadow" cx="8" cy="24.3" rx="6" ry="1.2"/>
+    <g class="leg-l">${px(5, 17, 3, 2, 'jeans')}${px(5, 19, 3, 3, 'skin')}${px(4, 22, 4, 1, 'shoe')}</g>
+    <g class="leg-r">${px(8, 17, 3, 2, 'jeans')}${px(8, 19, 3, 3, 'skin')}${px(8, 22, 4, 1, 'shoe')}</g>
+    <g class="arm-l">${px(2, 10, 2, 7, 'skin')}</g>
+    <g class="arm-r">${px(12, 10, 2, 7, 'skin')}</g>
+    ${px(4, 10, 8, 7, 'shirt')}${px(4, 10, 1, 1, 'skin')}${px(11, 10, 1, 1, 'skin')}${px(6, 10, 4, 2, 'skin')}
+    <g class="head">${px(4, 2, 8, 8, 'skin')}${px(4, 1, 8, 2, 'hair')}${px(4, 3, 1, 3, 'hair')}${px(11, 3, 1, 3, 'hair')}
+      <g class="open">${px(6, 6, 1, 1, 'eye')}${px(9, 6, 1, 1, 'eye')}</g><g class="shut">${px(5, 6, 2, 1, 'eye')}${px(9, 6, 2, 1, 'eye')}</g>
+      ${px(7, 8, 2, 1, 'eye')}${ACCESSORY[a.acc]}</g>
+  </svg></div>`;
+};
+
+(function buildOffice() {
+  let html = `<div class="floor"></div><div class="rug"></div>
+    <div class="f wall-back" style="width:${ROOM}px;height:${WALL}px;transform:matrix3d(1,0,0,0,0,0,-1,0,0,1,0,0,0,0,${WALL},1)"><div class="window"></div></div>
+    <div class="f wall-left" style="width:${ROOM}px;height:${WALL}px;transform:matrix3d(0,1,0,0,0,0,-1,0,1,0,0,0,0,0,${WALL},1)"><div class="poster">${'<span></span>'.repeat(12)}</div></div>
+    ${box(530, 16, 0, 22, 22, 14, 'k-pot')}${billboard(541, 27, 14, '<div class="cactus"></div>')}
+    ${billboard(14, 420, 0, '<div class="lava"><i></i></div>')}${billboard(548, 420, 0, '<div class="lava"><i></i></div>')}
+    ${box(470, 450, 0, 64, 40, 46, 'k-arcade', '<div class="screen"></div>')}${billboard(502, 470, 52, '<div class="smoke"><i></i><i></i><i></i></div>')}
+    ${box(28, 486, 0, 56, 34, 34, 'k-table')}${box(28, 486, 34, 56, 34, 6, 'k-boom')}
+    ${billboard(300, 520, 0, '<div class="umbrella"></div>')}${billboard(330, 470, 30, '<div class="notes">♪ ♫</div>')}`;
+  for (const id of Object.keys(AGENTS)) {
+    const d = AGENTS[id].desk, h = AGENTS[id].home;
+    html += box(d.x, d.y, 0, 124, 60, 54, 'k-desk');
+    html += box(d.x + 34, d.y + 10, 54, 56, 22, 40, 'k-mon', '<div class="screen"><i></i><i></i><i></i><b></b><b></b><b></b></div>', `mon-${id}`);
+    html += billboard(h.x, h.y, 0,
+      `<div class="say" id="say-${id}" style="--agent:${AGENTS[id].color}"></div>${sprite(id)}<div class="fx"><i class="bit"></i><i class="bit"></i><i class="bit"></i><i class="conf"></i><i class="conf"></i><i class="conf"></i><i class="conf"></i><i class="conf"></i><i class="conf"></i></div>`,
+      ` id="walker-${id}"`).replace('class="bb"', 'class="bb walker"');
+  }
+  const scene = document.getElementById('scene');
+  scene.innerHTML = html;
+  scene.style.width = scene.style.height = ROOM + 'px';
+  scene.style.marginLeft = scene.style.marginTop = -ROOM / 2 + 'px';
+  const wrap = document.getElementById('wrap'), stage = document.getElementById('stage');
+  stage.style.width = STAGE_W + 'px'; stage.style.height = STAGE_H + 'px';
+  const fit = (w) => { const s = Math.min(1, w / STAGE_W); wrap.style.height = STAGE_H * s + 'px'; stage.style.left = (w - STAGE_W * s) / 2 + 'px'; stage.style.transform = `scale(${s})`; };
+  new ResizeObserver(([e]) => fit(e.contentRect.width)).observe(wrap);
+  fit(wrap.clientWidth);
+})();
+
+// ── Off-duty workers wander to the braai (flip the boerewors), the cooler box or the beach umbrella, then walk back ──
+const SPOTS = [{ x: 500, y: 520, act: 'play' }, { x: 104, y: 540, act: '' }, { x: 340, y: 548, act: 'dance' }];
+const away = perAgent(false);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function walkTo(id, points) {
+  const w = document.getElementById('walker-' + id), s = document.getElementById('sprite-' + id);
+  s.dataset.act = 'walk';
+  for (const p of points) {
+    const cx = parseFloat(w.style.left), cy = parseFloat(w.style.top);
+    const ms = Math.max(200, (Math.hypot(p.x - cx, p.y - cy) / 80) * 1000);
+    s.style.setProperty('--face', (p.x - cx) - (p.y - cy) < 0 ? -1 : 1); // screen x grows with (x − y) in this view
+    w.style.transitionDuration = ms + 'ms';
+    w.style.left = p.x + 'px'; w.style.top = p.y + 'px';
+    await sleep(ms);
+  }
+  s.dataset.act = '';
+}
+async function wander() {
+  if (REDUCED || document.hidden) return;
+  const idle = Object.keys(AGENTS).filter((id) => moods[id] === 'off' && !away[id]);
+  if (!idle.length || Math.random() < 0.45) return;
+  const id = idle[Math.floor(Math.random() * idle.length)], home = AGENTS[id].home;
+  const spot = SPOTS[Math.floor(Math.random() * SPOTS.length)];
+  const aisle = home.x < 282 ? 192 : 372; // walk down the gap between desks, not through them
+  away[id] = true;
+  document.getElementById('walker-' + id).classList.add('roam');
+  await walkTo(id, [{ x: aisle, y: home.y }, { x: aisle, y: 420 }, spot]);
+  const s = document.getElementById('sprite-' + id);
+  s.dataset.act = spot.act; s.style.setProperty('--face', 1);
+  await sleep(5000 + Math.random() * 4000);
+  await walkTo(id, [{ x: aisle, y: 420 }, { x: aisle, y: home.y }, home]);
+  document.getElementById('walker-' + id).classList.remove('roam');
+  away[id] = false;
+}
+setInterval(wander, 7000);
+
+// ── Worker windows ──
+const titlebar = (name, icon) => `<div class="titlebar"><span class="ico">${icon}</span><span class="t-name">${name}</span><span class="t-btns" aria-hidden="true"><span>_</span><span>□</span><span>×</span></span></div>`;
+document.getElementById('cards').innerHTML = Object.entries(AGENTS).map(([id, a]) => `
+  <section class="win card" style="--agent:${a.color};--agent-ink:${a.ink}" aria-labelledby="h-${id}">
+    ${titlebar(`<span id="h-${id}">${a.name}</span>`, a.icon)}
+    <div class="win-body">
+      <p class="role">${a.role}</p>
+      <div class="status" id="pill-${id}" data-mood="off"><i></i><span>OFF DUTY</span></div>
+      <p class="lcd" id="now-${id}" aria-live="polite">Hasn't reported in yet.</p>
+      <p class="when" id="when-${id}"></p>
+      <dl class="stats"><div><dt>Filed today</dt><dd id="today-${id}">0</dd></div><div><dt>Already known</dt><dd id="dups-${id}">0</dd></div></dl>
+      <p class="usage" id="use-${id}">No runs this week</p>
+      <div class="controls">
+        <button type="button" class="btn btn-run" id="run-${id}" disabled>Run now</button>
+        <button type="button" class="btn" id="pause-${id}" disabled>Pause schedule</button>
+      </div>
+      <p class="ctl-note" id="ctl-${id}" aria-live="polite">Connecting…</p>
+      <fieldset class="sched" id="sched-${id}">
+        <legend>When it works</legend>
+        <div class="days">${DAY_NAMES.map((n, d) => `<label class="day"><input type="checkbox" id="day-${id}-${d}" value="${d}"><span>${n}</span></label>`).join('')}</div>
+        <div class="sched-row">
+          <label class="time-label" for="time-${id}">at</label>
+          <input type="time" id="time-${id}" step="60">
+          <button type="button" class="btn" id="save-${id}" disabled>Save schedule</button>
+        </div>
+      </fieldset>
+    </div>
+  </section>`).join('');
+
+// ── Rendering from the activity log ──
+let rows = [];
+const saDay = (t) => new Date(t).toLocaleDateString('en-CA', { timeZone: 'Africa/Johannesburg' });
+const saTime = (t) => new Date(t).toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit' });
+function ago(t) {
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  if (s < 86400) return `${Math.round(s / 3600)} h ago`;
+  return `${Math.round(s / 86400)} days ago`;
+}
+function moodOf(r) {
+  if (!r) return 'off';
+  const fresh = Date.now() - r.t < ACTIVE_MS;
+  if (r.kind === 'error') return fresh ? 'stuck' : 'off';
+  if (r.kind === 'done') return fresh ? 'finished' : 'off';
+  return fresh ? 'working' : 'off';
+}
+function render() {
+  const today = saDay(Date.now());
+  for (const id of Object.keys(AGENTS)) {
+    const mine = rows.filter((r) => r.agent === id);
+    const last = mine[0];
+    const mood = moodOf(last);
+    moods[id] = mood;
+    document.getElementById('sprite-' + id).dataset.mood = mood;
+    document.getElementById('mon-' + id).classList.toggle('on', mood === 'working');
+    const pill = document.getElementById('pill-' + id);
+    pill.dataset.mood = mood;
+    pill.querySelector('span').textContent = mood === 'off' && controls[id]?.paused ? 'Paused' : MOOD_LABEL[mood];
+    document.getElementById('now-' + id).textContent = last ? last.message : "Hasn't reported in yet. It shows up here on its next run.";
+    document.getElementById('when-' + id).textContent = last ? `Last update ${ago(last.t)}` : '';
+    const todays = mine.filter((r) => saDay(r.t) === today);
+    document.getElementById('today-' + id).textContent = todays.filter((r) => r.kind === 'filed').length;
+    document.getElementById('dups-' + id).textContent = todays.filter((r) => r.kind === 'duplicate').length;
+
+    const say = document.getElementById('say-' + id);
+    say.textContent = '';
+    if (mood === 'off') {
+      const z = document.createElement('span'); z.className = 'zzz'; z.textContent = 'Zz'; say.append(z);
+    } else {
+      const b = document.createElement('span'); b.className = mood === 'stuck' ? 'bubble alert' : 'bubble';
+      const n = document.createElement('b'); n.textContent = mood === 'stuck' ? 'Needs you!' : AGENTS[id].name;
+      b.append(n, last.message.length > 70 ? last.message.slice(0, 70) + '…' : last.message);
+      say.append(b);
+    }
+  }
+  const feed = document.getElementById('feed');
+  feed.textContent = '';
+  if (!rows.length) {
+    const li = document.createElement('li'); li.className = 'empty';
+    li.textContent = 'Waiting for the first report. The workers post each step here while they run.';
+    feed.append(li); return;
+  }
+  for (const r of rows.slice(0, 60)) {
+    const li = document.createElement('li');
+    li.style.setProperty('--agent', AGENTS[r.agent].color);
+    const dot = document.createElement('span'); dot.className = 'dot'; dot.dataset.kind = r.kind;
+    const time = document.createElement('time'); time.dateTime = new Date(r.t).toISOString(); time.textContent = saTime(r.t);
+    const who = document.createElement('span'); who.className = 'who'; who.textContent = AGENTS[r.agent].name;
+    const msg = document.createElement('span'); msg.className = 'msg'; msg.textContent = r.message;
+    li.append(dot, time, who, msg); feed.append(li);
+  }
+}
+render();
+setInterval(render, 20000); // moods age out ("Working" → "Off duty") without new data
+
+// ── Controls: the page writes controls/<agent>; a helper on the owner's PC checks every 15 min and acts on it ──
+let db = null;
+const busy = perAgent(false);
+const errors = perAgent('');
+const pendingRun = (c) => !!c.runRequestedAt && (!c.handledAt || Date.parse(c.runRequestedAt) > Date.parse(c.handledAt));
+function renderControls() {
+  for (const id of Object.keys(AGENTS)) {
+    const c = controls[id], run = document.getElementById('run-' + id), pause = document.getElementById('pause-' + id), note = document.getElementById('ctl-' + id);
+    const waiting = pendingRun(c);
+    run.disabled = !db || busy[id] || waiting;
+    pause.disabled = !db || busy[id];
+    run.textContent = waiting ? 'Run requested' : 'Run now';
+    pause.textContent = c.paused ? 'Resume schedule' : 'Pause schedule';
+    if (!db) { note.textContent = 'Open this page on claude.ai to use the buttons.'; continue; }
+    const parts = [];
+    if (errors[id]) parts.push(errors[id]);
+    if (waiting) parts.push(instant[id] || `Run requested ${ago(Date.parse(c.runRequestedAt))}. It starts within 15 minutes while the Claude app is open.`);
+    else if (c.handledAt && Date.now() - Date.parse(c.handledAt) < 6 * 3600e3) parts.push(`Started from here ${ago(Date.parse(c.handledAt))}.`);
+    if (c.paused) parts.push(c.appliedPaused ? 'Scheduled runs are paused.' : 'Pausing scheduled runs within 15 minutes.');
+    else {
+      const want = validSchedule(c.schedule) ? c.schedule : DEFAULT_SCHEDULE[id];
+      const pending = validSchedule(c.schedule) && !sameSchedule(c.schedule, c.appliedSchedule);
+      parts.push(c.appliedPaused ? 'Resuming scheduled runs within 15 minutes.' : pending ? `New schedule (${scheduleText(want)}) applies within 15 minutes.` : `Runs by itself ${scheduleText(want)}.`);
+    }
+    note.textContent = parts.join(' ');
+    // Fill the schedule form from the saved schedule, unless the owner is editing it right now.
+    const form = document.getElementById('sched-' + id);
+    if (!form.dataset.dirty) {
+      const s = validSchedule(c.schedule) ? c.schedule : DEFAULT_SCHEDULE[id];
+      DAY_NAMES.forEach((_, d) => { document.getElementById(`day-${id}-${d}`).checked = s.days.includes(d); });
+      document.getElementById('time-' + id).value = s.time;
+    }
+    document.getElementById('save-' + id).disabled = !db || busy[id] || !form.dataset.dirty;
+  }
+}
+async function writeControl(id, patch) {
+  if (!db || busy[id]) return;
+  busy[id] = true; errors[id] = ''; renderControls();
+  const c = controls[id];
+  const next = { paused: !!c.paused, appliedPaused: !!c.appliedPaused, runRequestedAt: c.runRequestedAt ?? null, handledAt: c.handledAt ?? null,
+    schedule: c.schedule ?? null, appliedSchedule: c.appliedSchedule ?? null, ...patch, updatedAt: new Date().toISOString() };
+  try { await db.doc('controls/' + id).set(next); }
+  catch { errors[id] = 'That didn’t save. Try again in a moment.'; }
+  busy[id] = false; renderControls();
+}
+// Instant path: from the click, send the request to the Claude session watching this page. The helper is the fallback.
+let comments = null;
+const instant = perAgent('');
+async function sendInstant(id) {
+  if (!comments) return false;
+  try {
+    if ((await comments.canSendToClaude()) !== 'available') return false;
+    const anchor = await comments.anchorFor(document.getElementById('run-' + id));
+    await comments.sendToClaude({ anchor, text: `Run now: ${AGENTS[id].name} (task ${AGENTS[id].task}). Sent from the Run now button in Scout HQ.` });
+    return true;
+  } catch { return false; }
+}
+for (const id of Object.keys(AGENTS)) {
+  document.getElementById('run-' + id).addEventListener('click', async () => {
+    const sent = sendInstant(id); // start inside the click so it counts as the viewer's own gesture
+    await writeControl(id, { runRequestedAt: new Date().toISOString() });
+    instant[id] = (await sent) ? 'Sent to Claude, starting now.' : '';
+    renderControls();
+  });
+  document.getElementById('pause-' + id).addEventListener('click', () => writeControl(id, { paused: !controls[id].paused }));
+  const form = document.getElementById('sched-' + id);
+  form.addEventListener('input', () => { form.dataset.dirty = '1'; errors[id] = ''; renderControls(); });
+  document.getElementById('save-' + id).addEventListener('click', async () => {
+    const schedule = {
+      days: DAY_NAMES.map((_, d) => d).filter((d) => document.getElementById(`day-${id}-${d}`).checked),
+      time: document.getElementById('time-' + id).value,
+    };
+    if (!validSchedule(schedule)) { errors[id] = 'Pick at least one day and a time.'; renderControls(); return; }
+    await writeControl(id, { schedule });
+    if (!errors[id]) delete form.dataset.dirty;
+    renderControls();
+  });
+}
+renderControls();
+setInterval(renderControls, 20000);
+
+// ── Reports: one document per finished run in the "reports" collection ──
+let reports = [];
+const safeLink = (u) => { try { const x = new URL(u); return x.protocol === 'https:' || x.protocol === 'http:' ? x.href : null; } catch { return null; } };
+const strList = (v, n) => (Array.isArray(v) ? v : []).slice(0, n);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+// Usage meter: runs in the last 7 days and their average length (each worker reports its run time in minutes).
+function renderUsage() {
+  const weekAgo = Date.now() - 7 * 86400e3;
+  for (const id of Object.keys(AGENTS)) {
+    const runs = reports.filter((r) => r.agent === id && r.t >= weekAgo);
+    const timed = runs.filter((r) => r.minutes > 0);
+    const avg = timed.length ? Math.round(timed.reduce((s, r) => s + r.minutes, 0) / timed.length) : null;
+    const elU = document.getElementById('use-' + id);
+    elU.textContent = '';
+    if (!runs.length) { elU.textContent = 'No runs this week'; continue; }
+    elU.append(el('b', null, `${runs.length} run${runs.length === 1 ? '' : 's'}`), ' this week',
+      ...(avg ? [' · ', el('b', null, `~${avg} min`), ` each · ${avg * timed.length} min total`] : []));
+  }
+}
+
+function renderReports() {
+  renderUsage();
+  const box = document.getElementById('reports');
+  box.textContent = '';
+  if (!reports.length) { box.append(el('p', 'win empty-card', 'No reports yet. Each worker files one here when a run finishes.')); return; }
+  reports.slice(0, 20).forEach((r, i) => {
+    const a = AGENTS[r.agent];
+    const d = el('details', 'win report'); d.style.setProperty('--agent', a.color); d.style.setProperty('--agent-ink', a.ink);
+    if (i < 2) d.open = true;
+    const s = el('summary');
+    const bar = el('div', 'titlebar');
+    const ico = el('span', 'ico'); ico.innerHTML = a.icon; // our own static icon markup, never report data
+    bar.append(ico, el('span', 't-name', `${a.name}: run report`));
+    const head = el('div', 'r-head');
+    const time = el('time', null, `${saDay(r.t)} ${saTime(r.t)}`); time.dateTime = new Date(r.t).toISOString();
+    head.append(el('span', 'r-title', r.title), time);
+    s.append(bar, head);
+    const body = el('div', 'r-body');
+    if (r.summary) body.append(el('p', null, r.summary));
+    const list = (label, items, fill) => {
+      if (!items.length) return;
+      const sec = el('div'); sec.append(el('h3', null, label));
+      const ul = el('ul'); items.forEach((it) => { const li = el('li'); fill(li, it); ul.append(li); }); sec.append(ul); body.append(sec);
+    };
+    list(`Filed (${r.filed.length})`, r.filed, (li, f) => {
+      const href = safeLink(f.link);
+      if (href) { const link = el('a', null, String(f.name ?? '')); link.href = href; link.target = '_blank'; link.rel = 'noopener'; li.append(link); }
+      else li.append(String(f.name ?? ''));
+      if (f.detail) li.append(el('span', 'detail', ` · ${f.detail}`));
+    });
+    list('Check before approving', r.check, (li, c) => li.append(String(c)));
+    list(`Skipped (${r.skipped.length})`, r.skipped, (li, k) => { li.append(String(k.name ?? '')); if (k.reason) li.append(el('span', 'detail', ` · ${k.reason}`)); });
+    if (r.next) { const sec = el('div'); sec.append(el('h3', null, 'Next run'), el('p', null, r.next)); body.append(sec); }
+    d.append(s, body); box.append(d);
+  });
+}
+renderReports();
+
+// ── Live data: the workers append documents to the "activity" collection ──
+const live = document.getElementById('live'), liveText = document.getElementById('live-text');
+function setLive(on, text) { live.dataset.on = String(on); liveText.textContent = text; }
+(async () => {
+  window.claude?.use?.('comments').then((c) => { comments = c; }, () => {});
+  db = window.claude?.use ? await window.claude.use('db') : null;
+  if (!db) { setLive(false, 'Open on claude.ai'); renderControls(); return; }
+  db.collection('controls').onSnapshot((snap) => {
+    for (const d of snap.docs) if (AGENTS[d.id]) controls[d.id] = d.data() ?? {};
+    renderControls();
+  }, () => {});
+  renderControls();
+  const slow = setTimeout(() => setLive(false, 'Still connecting'), 10000);
+  db.collection('activity').orderBy('at', 'desc').limit(300).onSnapshot((snap) => {
+    rows = snap.docs.map((d) => d.data()).filter((r) => r && AGENTS[r.agent] && typeof r.message === 'string' && typeof r.at === 'string')
+      // A worker's clock can be off; never show a step as happening in the future.
+      .map((r) => ({ agent: r.agent, kind: String(r.kind || 'working'), message: r.message.slice(0, 300), t: Math.min(Date.parse(r.at), Date.now()) }))
+      .filter((r) => Number.isFinite(r.t));
+    if (!snap.metadata.fromCache) { clearTimeout(slow); setLive(true, 'Live'); }
+    render();
+  }, (e) => { clearTimeout(slow); setLive(false, e.code === 'revoked' ? 'Disconnected' : 'Offline'); });
+  db.collection('reports').orderBy('at', 'desc').limit(40).onSnapshot((snap) => {
+    reports = snap.docs.map((d) => d.data()).filter((r) => r && AGENTS[r.agent] && typeof r.at === 'string' && Number.isFinite(Date.parse(r.at)))
+      .map((r) => ({
+        agent: r.agent, t: Date.parse(r.at), minutes: Math.max(0, Math.min(600, Math.round(Number(r.minutes) || 0))),
+        title: String(r.title ?? 'Run report').slice(0, 160), summary: String(r.summary ?? '').slice(0, 1200),
+        filed: strList(r.filed, 60).filter((f) => f && typeof f === 'object'), skipped: strList(r.skipped, 60).filter((k) => k && typeof k === 'object'),
+        check: strList(r.check, 20).map(String), next: String(r.next ?? '').slice(0, 400),
+      }));
+    renderReports();
+  }, () => {});
+})();
+</script>
