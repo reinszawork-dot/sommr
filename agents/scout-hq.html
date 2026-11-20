@@ -192,8 +192,8 @@ for (const [id, a] of Object.entries(AGENTS)) a.color = `var(--${id})`;
 // Days are cron weekdays: 0 = Sunday. DEFAULT_SCHEDULE mirrors the tasks as first set up on the owner's PC.
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DEFAULT_SCHEDULE = {
-  events: { days: [0, 1, 2, 3, 4, 5, 6], time: '18:23' }, gems: { days: [0, 3], time: '10:29' }, sources: { days: [2], time: '14:17' },
-  checker: { days: [1, 5], time: '07:13' }, deals: { days: [3], time: '17:41' }, planner: { days: [4], time: '12:07' },
+  events: { days: [5, 6], time: '18:23' }, gems: { days: [0, 4], time: '10:29' }, sources: { days: [5], time: '14:17' },
+  checker: { days: [1, 5], time: '07:13' }, deals: { days: [6], time: '17:41' }, planner: { days: [0, 6], time: '12:07' },
 };
 const validSchedule = (s) => s && Array.isArray(s.days) && s.days.length > 0 && s.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)
   && typeof s.time === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s.time);
