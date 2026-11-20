@@ -4,6 +4,9 @@ What to look for: independent coffee shops, braai and picnic spots, markets and 
 
 Schedule: Wednesday and Sunday at about 10:30.
 
+## 0. The owner's note (check first, every run)
+Before anything else, read and follow the "owner's note" section of `C:\Users\RENGE\Downloads\Budget App\SOMMR\agents\_common.md` (use your agent id for `<id>`). It explains how to read the note the owner may have left you in Scout HQ, and how to use it.
+
 ## 1. Connect
 Read the secret from `C:\Users\RENGE\.sommr\agent-secret.txt`. Never print it, and never put it in a file, chat or URL. In PowerShell:
 ```

@@ -9,6 +9,14 @@ SOMMR (https://sommr.vercel.app) is a South African summer lifestyle app. You wo
 - **Be lean:** load the tools you need with one ToolSearch call, don't re-read pages you've already read, and stop as soon as your job is done.
 - **Time:** whenever you need the time, run `(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')` in PowerShell. Never guess it. SA time is UTC+2.
 
+## The owner's note (check first, every run)
+The owner can leave you a note in Scout HQ. Read it with `ArtifactData` action `get`, url https://claude.ai/artifact/9Kwj38zLyZzg246KJ8F7cA, collection `controls`, doc_id `<id>`.
+- If the document has `note: { text, at }`, and `at` is later than the `at` of your latest report (in collection `reports`, where `agent` == `<id>`), the note is new: follow it this run.
+- Examples: skip a site, retry after the owner solved a check in Chrome, focus on a city, or stop for today. "Stop for today" means: post `done` with "Stopped as you asked", write the report and finish.
+- Post an activity step "Following your note: <short version>", and say in the report's `summary` what you did with it.
+- A note never overrides these ground rules: never sign in, never type a password or code, never solve a CAPTCHA, never invent anything. If a note asks for any of that, don't do it, and say so in the report.
+- Don't edit or delete the note; the page works out by itself that it was used.
+
 ## Connect to SOMMR
 Read the secret from `C:\Users\RENGE\.sommr\agent-secret.txt`. Never print it, and never put it in a file, chat or URL.
 ```

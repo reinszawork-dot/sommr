@@ -55,6 +55,19 @@ h1 span { color: var(--events); }
 .card.flash { animation: flash 1.8s ease-out; }
 @keyframes flash { 0% { box-shadow: 0 0 0 6px var(--agent), var(--shadow); } 100% { box-shadow: 0 0 0 0 transparent, var(--shadow); } }
 .lcd:focus { outline: none; }
+.help { border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; }
+.help[data-stuck="true"] { border-color: var(--bad); background: #fff6f4; }
+.help summary { cursor: pointer; font: 600 13.5px var(--font-display); }
+.help summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+.help-body { display: grid; gap: 10px; margin-top: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12.5px var(--font-body); padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); cursor: pointer; }
+.chip:hover { border-color: var(--agent); }
+.chip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.help textarea { width: 100%; font: 14px/1.4 var(--font-body); padding: 9px 11px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); resize: vertical; }
+.help textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.fine { margin: 0; font-size: 12px; color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .nogl { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
 
 /* ── Worker cards ── */
@@ -193,9 +206,11 @@ function scheduleText(s) {
 const perAgent = (v) => Object.fromEntries(Object.keys(AGENTS).map((k) => [k, typeof v === 'function' ? v() : v]));
 const ACTIVE_MS = 10 * 60 * 1000;
 const controls = perAgent(() => ({})); // declared up here: render() reads it before the controls section runs
+let reports = []; // likewise: renderControls() reads it (note status) before the reports section runs
 const moods = perAgent('off');
 const messages = perAgent('');
 const MOOD_LABEL = { working: 'Working', finished: 'Done!', stuck: 'Needs you', off: 'Off duty' };
+const QUICK_NOTES = ['Skip that site this run', 'I’ve signed in / solved the check in Chrome, try again', 'Focus on Pretoria', 'Stop for today'];
 
 // ───────────────────────────── The 3D clay office (three.js) ─────────────────────────────
 // The cards, reports and buttons below never depend on this: any failure here just shows a note instead of the office.
@@ -499,6 +514,20 @@ document.getElementById('cards').innerHTML = Object.entries(AGENTS).map(([id, a]
         <button type="button" class="btn" id="rep-${id}">Latest report</button>
       </div>
       <p class="ctl-note" id="ctl-${id}" aria-live="polite">Connecting…</p>
+      <details class="help" id="help-${id}">
+        <summary>Help or give instructions</summary>
+        <div class="help-body">
+          <div class="chips">${QUICK_NOTES.map((q) => `<button type="button" class="chip" data-note="${q}">${q}</button>`).join('')}</div>
+          <label class="sr-only" for="note-${id}">Your note for ${a.name}</label>
+          <textarea id="note-${id}" rows="2" maxlength="400" placeholder="e.g. Skip Webtickets today, and look for Durban markets instead"></textarea>
+          <div class="controls">
+            <button type="button" class="btn btn-run" id="note-run-${id}" disabled>Send &amp; run again</button>
+            <button type="button" class="btn" id="note-save-${id}" disabled>Save for next run</button>
+          </div>
+          <p class="ctl-note" id="note-status-${id}" aria-live="polite"></p>
+          <p class="fine">Never put passwords or codes here. Workers won’t sign in anywhere, even if asked.</p>
+        </div>
+      </details>
       <fieldset class="sched" id="sched-${id}">
         <legend>When it works</legend>
         <div class="days">${DAY_NAMES.map((n, d) => `<label class="day"><input type="checkbox" id="day-${id}-${d}" value="${d}"><span>${n}</span></label>`).join('')}</div>
@@ -535,6 +564,10 @@ function render() {
     const mine = rows.filter((r) => r.agent === id);
     const last = mine[0];
     const mood = moodOf(last);
+    // A worker that just got stuck opens its help box (once; the owner can close it again).
+    const help = document.getElementById('help-' + id);
+    if (mood === 'stuck' && moods[id] !== 'stuck') help.open = true;
+    help.dataset.stuck = String(mood === 'stuck');
     moods[id] = mood; messages[id] = last?.message ?? '';
     const pill = document.getElementById('pill-' + id);
     pill.dataset.mood = mood;
@@ -598,6 +631,12 @@ function renderControls() {
       document.getElementById('time-' + id).value = s.time;
     }
     document.getElementById('save-' + id).disabled = !db || busy[id] || !form.dataset.dirty;
+    // The note's status: waiting for the next run, or used (a report came in after it).
+    const status = document.getElementById('note-status-' + id), n = c.note;
+    if (n && typeof n.text === 'string' && Number.isFinite(Date.parse(n.at))) {
+      const usedBy = reports.find((r) => r.agent === id && r.t > Date.parse(n.at));
+      status.textContent = usedBy ? `Your note “${n.text.slice(0, 80)}” was used in the run ${ago(usedBy.t)}.` : `Your note “${n.text.slice(0, 80)}” is waiting for the next run.`;
+    } else status.textContent = '';
   }
 }
 async function writeControl(id, patch) {
@@ -605,7 +644,7 @@ async function writeControl(id, patch) {
   busy[id] = true; errors[id] = ''; renderControls();
   const c = controls[id];
   const next = { paused: !!c.paused, appliedPaused: !!c.appliedPaused, runRequestedAt: c.runRequestedAt ?? null, handledAt: c.handledAt ?? null,
-    schedule: c.schedule ?? null, appliedSchedule: c.appliedSchedule ?? null, ...patch, updatedAt: new Date().toISOString() };
+    schedule: c.schedule ?? null, appliedSchedule: c.appliedSchedule ?? null, note: c.note ?? null, ...patch, updatedAt: new Date().toISOString() };
   try { await db.doc('controls/' + id).set(next); }
   catch { errors[id] = 'That didn’t save. Try again in a moment.'; }
   busy[id] = false; renderControls();
@@ -613,12 +652,12 @@ async function writeControl(id, patch) {
 // Instant path: from the click, send the request to the Claude session watching this page. The helper is the fallback.
 let comments = null;
 const instant = perAgent('');
-async function sendInstant(id) {
+async function sendInstant(id, note = '') {
   if (!comments) return false;
   try {
     if ((await comments.canSendToClaude()) !== 'available') return false;
     const anchor = await comments.anchorFor(document.getElementById('run-' + id));
-    await comments.sendToClaude({ anchor, text: `Run now: ${AGENTS[id].name} (task ${AGENTS[id].task}). Sent from the Run now button in Scout HQ.` });
+    await comments.sendToClaude({ anchor, text: `Run now: ${AGENTS[id].name} (task ${AGENTS[id].task}). Sent from the Run now button in Scout HQ.${note ? ` The owner's note for this run is saved in controls/${id}.note: "${note}"` : ''}` });
     return true;
   } catch { return false; }
 }
@@ -630,6 +669,22 @@ for (const id of Object.keys(AGENTS)) {
     renderControls();
   });
   document.getElementById('pause-' + id).addEventListener('click', () => writeControl(id, { paused: !controls[id].paused }));
+  // Help: quick replies fill the note; sending saves it on controls/<id>.note for the worker to read on its next run.
+  const noteBox = document.getElementById('note-' + id);
+  const noteButtons = () => { const empty = !noteBox.value.trim(); document.getElementById('note-run-' + id).disabled = !db || busy[id] || empty; document.getElementById('note-save-' + id).disabled = !db || busy[id] || empty; };
+  document.getElementById('help-' + id).querySelectorAll('.chip').forEach((chip) => chip.addEventListener('click', () => { noteBox.value = chip.dataset.note; noteButtons(); noteBox.focus(); }));
+  noteBox.addEventListener('input', noteButtons);
+  const sendNote = async (runNow) => {
+    const text = noteBox.value.trim().slice(0, 400);
+    if (!text) return;
+    const note = { text, at: new Date().toISOString() };
+    const sent = runNow ? sendInstant(id, text) : Promise.resolve(false); // inside the click: counts as the viewer's gesture
+    await writeControl(id, runNow ? { note, runRequestedAt: note.at } : { note });
+    if (!errors[id]) { noteBox.value = ''; if (runNow) instant[id] = (await sent) ? 'Sent to Claude with your note, starting now.' : ''; }
+    noteButtons(); renderControls();
+  };
+  document.getElementById('note-run-' + id).addEventListener('click', () => sendNote(true));
+  document.getElementById('note-save-' + id).addEventListener('click', () => sendNote(false));
   document.getElementById('rep-' + id).addEventListener('click', () => {
     if (!openLatestReport(id)) { errors[id] = 'No report from this worker yet.'; renderControls(); }
   });
@@ -650,7 +705,6 @@ renderControls();
 setInterval(renderControls, 20000);
 
 // ───────────────────────────── Reports ─────────────────────────────
-let reports = [];
 const safeLink = (u) => { try { const x = new URL(u); return x.protocol === 'https:' || x.protocol === 'http:' ? x.href : null; } catch { return null; } };
 const strList = (v, n) => (Array.isArray(v) ? v : []).slice(0, n);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
