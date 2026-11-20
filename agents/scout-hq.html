@@ -51,6 +51,10 @@ h1 span { color: var(--events); }
 .bubble.alert b { color: #fff; }
 .bubble.zz { padding: 3px 9px; font: 600 13px var(--font-display); color: var(--muted); border-color: var(--line); }
 .bubble[hidden] { display: none; }
+.bubble { pointer-events: auto; cursor: pointer; }
+.card.flash { animation: flash 1.8s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 6px var(--agent), var(--shadow); } 100% { box-shadow: 0 0 0 0 transparent, var(--shadow); } }
+.lcd:focus { outline: none; }
 .nogl { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
 
 /* ── Worker cards ── */
@@ -329,6 +333,28 @@ function buildWorld() {
     workers[id] = { root, body, head, eyes, armL, armR, legL, legR, beer, confetti, bubble, home, seat: { x: dx, z: dz + 1.05 }, state: 'desk', path: [], act: '', actUntil: 0, nextWander: performance.now() + 4000 + Math.random() * 12000 };
   }
 
+  // Click (or tap) a worker or its bubble to jump to its card. A drag that spins the room is not a click.
+  const pickables = [];
+  for (const [id, w] of Object.entries(workers)) {
+    w.root.traverse((o) => { if (o.isMesh) { o.userData.agent = id; pickables.push(o); } });
+    w.bubble.addEventListener('click', () => focusAgent(id));
+  }
+  const ray = new T.Raycaster(), ndc = new T.Vector2();
+  const pick = (e) => {
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    return ray.intersectObjects(pickables, false)[0]?.object.userData.agent ?? null;
+  };
+  let down = null;
+  renderer.domElement.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+  renderer.domElement.addEventListener('click', (e) => {
+    const moved = down ? Math.hypot(e.clientX - down.x, e.clientY - down.y) : 0;
+    down = null;
+    if (moved < 6) { const id = pick(e); if (id) focusAgent(id); }
+  });
+  renderer.domElement.addEventListener('pointermove', (e) => { if (!(e.buttons & 1)) renderer.domElement.style.cursor = pick(e) ? 'pointer' : ''; });
+
   // Off-duty spots: the fridge (a beer), the sofa (sit with a beer), the window (look outside).
   const SPOTS = [{ x: 5.3, z: 3.5, face: Math.PI / 2, act: 'drink' }, { x: -4.3, z: 3.1, face: 0, act: 'sit' }, { x: -1.2, z: -4.2, face: Math.PI, act: 'look' }];
   const aisleFor = (x) => (x < 0 ? -2.1 : 2.1);
@@ -436,10 +462,26 @@ function buildWorld() {
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);
-  return { workers };
+  return { workers, pick };
 }
 
 // ───────────────────────────── Worker cards ─────────────────────────────
+/** Bring a worker's card into view and flash it: what it's doing now, or why it needs you. */
+function focusAgent(id) {
+  const card = document.getElementById('h-' + id)?.closest('.card');
+  if (!card) return;
+  card.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'center' });
+  card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
+  card.querySelector('.lcd')?.focus({ preventScroll: true });
+}
+/** Open a worker's newest report and bring it into view. */
+function openLatestReport(id) {
+  const d = document.querySelector(`.report[data-agent="${id}"]`);
+  if (!d) return false;
+  d.open = true;
+  d.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' });
+  return true;
+}
 const titlebar = (name, icon) => `<div class="titlebar"><span class="ico">${icon}</span><span class="t-name">${name}</span></div>`;
 document.getElementById('cards').innerHTML = Object.entries(AGENTS).map(([id, a]) => `
   <section class="win card" style="--agent:${a.color};--agent-ink:${a.ink}" aria-labelledby="h-${id}">
@@ -447,13 +489,14 @@ document.getElementById('cards').innerHTML = Object.entries(AGENTS).map(([id, a]
     <div class="win-body">
       <p class="role">${a.role}</p>
       <div class="status" id="pill-${id}" data-mood="off"><i></i><span>Off duty</span></div>
-      <p class="lcd" id="now-${id}" aria-live="polite">Hasn't reported in yet.</p>
+      <p class="lcd" id="now-${id}" aria-live="polite" tabindex="-1">Hasn't reported in yet.</p>
       <p class="when" id="when-${id}"></p>
       <dl class="stats"><div><dt>Filed today</dt><dd id="today-${id}">0</dd></div><div><dt>Already known</dt><dd id="dups-${id}">0</dd></div></dl>
       <p class="usage" id="use-${id}">No runs this week</p>
       <div class="controls">
         <button type="button" class="btn btn-run" id="run-${id}" disabled>Run now</button>
         <button type="button" class="btn" id="pause-${id}" disabled>Pause schedule</button>
+        <button type="button" class="btn" id="rep-${id}">Latest report</button>
       </div>
       <p class="ctl-note" id="ctl-${id}" aria-live="polite">Connecting…</p>
       <fieldset class="sched" id="sched-${id}">
@@ -587,6 +630,9 @@ for (const id of Object.keys(AGENTS)) {
     renderControls();
   });
   document.getElementById('pause-' + id).addEventListener('click', () => writeControl(id, { paused: !controls[id].paused }));
+  document.getElementById('rep-' + id).addEventListener('click', () => {
+    if (!openLatestReport(id)) { errors[id] = 'No report from this worker yet.'; renderControls(); }
+  });
   const form = document.getElementById('sched-' + id);
   form.addEventListener('input', () => { form.dataset.dirty = '1'; errors[id] = ''; renderControls(); });
   document.getElementById('save-' + id).addEventListener('click', async () => {
@@ -629,7 +675,7 @@ function renderReports() {
   if (!reports.length) { box.append(el('p', 'win empty-card', 'No reports yet. Each worker files one here when a run finishes.')); return; }
   reports.slice(0, 20).forEach((r, i) => {
     const a = AGENTS[r.agent];
-    const d = el('details', 'win report'); d.style.setProperty('--agent', a.color); d.style.setProperty('--agent-ink', a.ink);
+    const d = el('details', 'win report'); d.style.setProperty('--agent', a.color); d.style.setProperty('--agent-ink', a.ink); d.dataset.agent = r.agent;
     if (i < 2) d.open = true;
     const s = el('summary');
     const bar = el('div', 'titlebar');
