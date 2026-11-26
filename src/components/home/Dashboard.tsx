@@ -59,7 +59,7 @@ export async function Dashboard({ user, welcome }: { user: SessionUser; welcome:
       {/* ── Greeting & countdown ── */}
       <section className="grid gap-6 lg:grid-cols-[1.25fr_1fr] lg:items-stretch">
         <div className="flex flex-col justify-center py-2">
-          <p className="eyebrow fade-in">{welcome ? `Welcome to SOMMR, ${firstName} · ` : ''}{weekday} · {loc.precise ? 'Near you' : loc.city.name}</p>
+          <p className="eyebrow fade-in">{welcome ? `Welcome to Somer, ${firstName} · ` : ''}{weekday} · {loc.precise ? 'Near you' : loc.city.name}</p>
           <h1 className="display mt-3 text-[3rem] sm:text-6xl lg:text-[4.4rem]">
             <WordReveal delay={80}>{today}</WordReveal>
           </h1>
@@ -249,7 +249,7 @@ export async function Dashboard({ user, welcome }: { user: SessionUser; welcome:
       {/* ── Around you ── */}
       <section className="mt-14" aria-labelledby="nearby-heading">
         <SectionHeader title={<span id="nearby-heading">Around you</span>} href="/explore">
-          Editor’s picks and places SOMMR members love{loc.precise ? ' near you' : ` in ${loc.city.name}`}
+          Editor’s picks and places Somer members love{loc.precise ? ' near you' : ` in ${loc.city.name}`}
         </SectionHeader>
         <NearbySection
           lat={loc.lat}

@@ -3,7 +3,7 @@ import type { Map as MlMap } from 'maplibre-gl';
 /** Free, keyless vector tiles from OpenFreeMap (OpenStreetMap data). */
 export const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
-/** Warm the neutral Positron style into SOMMR's cream, sand and soft blue. */
+/** Warm the neutral Positron style into Somer's cream, sand and soft blue. */
 const PAINT: Record<string, Record<string, unknown>> = {
   background: { 'background-color': '#f6f1e8' },
   park: { 'fill-color': '#e2e9d4' },

@@ -64,13 +64,13 @@ export async function updatePreferences(_: PrefsState, form: FormData): Promise<
   return { ok: true };
 }
 
-/** Turn browser coordinates into the nearest SOMMR city and a friendly area name. */
+/** Turn browser coordinates into the nearest Somer city and a friendly area name. */
 export async function locate(lat: number, lng: number): Promise<{ city: string; cityName: string; area: string | null; km: number } | { error: string }> {
   const user = await getCurrentUser();
   if (!user) return { error: 'Please sign in again.' };
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { error: 'We couldn’t read your location.' };
   const { city, km } = nearestCity(lat, lng);
-  if (km > 250) return { error: 'SOMMR covers South Africa — it looks like you’re outside the country. Pick a city instead.' };
+  if (km > 250) return { error: 'Somer covers South Africa — it looks like you’re outside the country. Pick a city instead.' };
   const area = await reverseGeocode(lat, lng).catch(() => null);
   return { city: city.slug, cityName: city.name, area, km: Math.round(km) };
 }

@@ -179,7 +179,7 @@ export const REJECT_REASONS = [
   'Not a real or confirmed event',
   'Wrong date or details',
   'Duplicate',
-  'Not a summer or SOMMR thing',
+  'Not a summer or Somer thing',
   'Too far out of town',
   'Weak source',
   'Other',

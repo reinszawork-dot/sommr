@@ -18,11 +18,11 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'SOMMR — Make this summer count', template: '%s · SOMMR' },
+  title: { default: 'Somer — Make this summer count', template: '%s · Somer' },
   description:
-    'SOMMR helps South Africans make the most of summer: discover places and events, take on daily summer challenges and keep your best memories.',
-  applicationName: 'SOMMR',
-  appleWebApp: { capable: true, title: 'SOMMR', statusBarStyle: 'default' },
+    'Somer helps South Africans make the most of summer: discover places and events, take on daily summer challenges and keep your best memories.',
+  applicationName: 'Somer',
+  appleWebApp: { capable: true, title: 'Somer', statusBarStyle: 'default' },
   formatDetection: { telephone: false },
 };
 

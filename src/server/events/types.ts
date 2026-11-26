@@ -20,7 +20,7 @@ export interface ImportedEvent {
   sourceUrl?: string | null;
   imageUrl?: string | null;
   organiser?: string | null;
-  /** Provider genres / categories, used to classify into SOMMR categories. */
+  /** Provider genres / categories, used to classify into Somer categories. */
   categoryHints: string[];
   cancelled?: boolean;
 }

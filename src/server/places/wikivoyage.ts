@@ -4,7 +4,7 @@ import { query, sql } from '../db';
 import { userAgent } from '../env';
 
 /**
- * Wikivoyage's "See" and "Do" listings for each SOMMR town: the sights and activities travellers recommend,
+ * Wikivoyage's "See" and "Do" listings for each Somer town: the sights and activities travellers recommend,
  * with coordinates. Text is CC BY-SA 4.0; the place panel credits it. Refreshed every two weeks by the daily cron.
  */
 export interface Listing {

@@ -7,7 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { requireAdmin } from '@/server/auth';
 import { maybeOne, sql } from '@/server/db';
 
-export const metadata: Metadata = { title: { default: 'Admin', template: '%s · SOMMR Admin' }, robots: { index: false } };
+export const metadata: Metadata = { title: { default: 'Admin', template: '%s · Somer Admin' }, robots: { index: false } };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireAdmin();

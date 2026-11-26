@@ -23,7 +23,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         </div>
       </div>
       <main className="flex flex-col px-5 pb-10 pt-6 sm:px-10">
-        <Link href="/" className="w-fit" aria-label="SOMMR home">
+        <Link href="/" className="w-fit" aria-label="Somer home">
           <Logo />
         </Link>
         <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-10 page-enter">{children}</div>

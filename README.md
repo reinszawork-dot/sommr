@@ -1,6 +1,6 @@
-# SOMMR — Make this summer count ☀️
+# Somer — Make this summer count ☀️
 
-SOMMR is a South African summer lifestyle and discovery app. It helps people find beaches, braai spots, markets and what's on near them, take on a small summer challenge every day, keep a bucket list and save their best summer memories.
+Somer is a South African summer lifestyle and discovery app. It helps people find beaches, braai spots, markets and what's on near them, take on a small summer challenge every day, keep a bucket list and save their best summer memories.
 
 It's a complete web app: accounts, a real database, an interactive map with real places, automatic event imports, daily challenges, photo memories and an admin dashboard. It works on phones (bottom navigation) and desktops (sidebar).
 

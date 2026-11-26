@@ -31,7 +31,7 @@ export function buildIcs(e: {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//SOMMR//Whats On//EN',
+    'PRODID:-//Somer//Whats On//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

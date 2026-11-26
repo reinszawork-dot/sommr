@@ -22,7 +22,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
       </a>
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[var(--sidebar-w)] flex-col border-r border-line bg-cream px-5 py-7 lg:flex">
-        <Link href="/" aria-label="SOMMR home" className="px-2">
+        <Link href="/" aria-label="Somer home" className="px-2">
           <Logo />
         </Link>
         <SidebarNav />
@@ -63,7 +63,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line/70 bg-cream/85 px-4 backdrop-blur-xl lg:hidden">
-        <Link href="/" aria-label="SOMMR home">
+        <Link href="/" aria-label="Somer home">
           <Logo />
         </Link>
         <div className="flex items-center gap-1">

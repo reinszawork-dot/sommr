@@ -1,5 +1,5 @@
 /**
- * Map an imported event to one SOMMR event category, using provider hints first,
+ * Map an imported event to one Somer event category, using provider hints first,
  * then the editable keyword lists on each category.
  */
 export interface ClassifierCategory {

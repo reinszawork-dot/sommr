@@ -36,7 +36,7 @@ export default async function AdminOverview() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="display text-5xl">Overview</h1>
-          <p className="mt-2 text-ink-3">Keep SOMMR’s places and events accurate and fresh.</p>
+          <p className="mt-2 text-ink-3">Keep Somer’s places and events accurate and fresh.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ActionButton action={runAllImportsAction} className="btn btn-ghost">

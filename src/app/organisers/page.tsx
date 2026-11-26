@@ -5,7 +5,7 @@ import { Logo } from '@/components/ui/Logo';
 
 export const metadata: Metadata = {
   title: 'List your event',
-  description: 'Running a market, gig, festival or summer event in South Africa? List it on SOMMR for free.',
+  description: 'Running a market, gig, festival or summer event in South Africa? List it on Somer for free.',
 };
 
 const STEPS = [
@@ -18,13 +18,13 @@ const STEPS = [
 export default function OrganisersPage() {
   return (
     <main className="mx-auto max-w-3xl px-5 pb-16 pt-6 sm:px-8">
-      <Link href="/" className="inline-block" aria-label="SOMMR home">
+      <Link href="/" className="inline-block" aria-label="Somer home">
         <Logo />
       </Link>
       <p className="eyebrow mt-12">For organisers</p>
-      <h1 className="display mt-2 text-5xl sm:text-6xl">List your event on SOMMR</h1>
+      <h1 className="display mt-2 text-5xl sm:text-6xl">List your event on Somer</h1>
       <p className="mt-4 max-w-2xl text-lg text-ink-2">
-        Running a market, gig, festival, braai day or anything worth going to this summer? SOMMR helps South Africans find what’s on near them.
+        Running a market, gig, festival, braai day or anything worth going to this summer? Somer helps South Africans find what’s on near them.
         Listing your event is free.
       </p>
       <ol className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -40,7 +40,7 @@ export default function OrganisersPage() {
         <Link href="/submit/event" className="btn btn-primary btn-lg">List your event</Link>
         <Link href="/register" className="btn btn-ghost btn-lg">Create a free account first</Link>
       </div>
-      <p className="mt-4 text-sm text-ink-3">You need a free SOMMR account to list events, so we can reach you if a detail needs checking.</p>
+      <p className="mt-4 text-sm text-ink-3">You need a free Somer account to list events, so we can reach you if a detail needs checking.</p>
     </main>
   );
 }

@@ -18,7 +18,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
         <LoginForm next={typeof next === 'string' ? next : undefined} />
       </div>
       <p className="mt-8 text-center text-sm text-ink-3">
-        New to SOMMR?{' '}
+        New to Somer?{' '}
         <Link href="/register" className="link font-medium">
           Create an account
         </Link>

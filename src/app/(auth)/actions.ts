@@ -119,8 +119,8 @@ export async function requestResetAction(_: FormState, form: FormData): Promise<
     const link = `${env.APP_URL}/reset-password?token=${token}`;
     const result = await sendEmail(
       parsed.data,
-      'Reset your SOMMR password',
-      `Hi ${user.display_name},\n\nUse this link to choose a new password. It works for one hour:\n${link}\n\nIf you didn’t ask for this, you can ignore this email.\n\n— SOMMR`,
+      'Reset your Somer password',
+      `Hi ${user.display_name},\n\nUse this link to choose a new password. It works for one hour:\n${link}\n\nIf you didn’t ask for this, you can ignore this email.\n\n— Somer`,
     );
     if (!result.sent) return { fields, error: result.reason };
   }

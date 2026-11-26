@@ -40,7 +40,7 @@ export default async function SourcesPage() {
         </div>
       </div>
       <p className="-mt-6 text-sm text-ink-3">
-        Wikivoyage sights and activities for every SOMMR town refresh by themselves every two weeks; the button fetches them now (takes about a minute).
+        Wikivoyage sights and activities for every Somer town refresh by themselves every two weeks; the button fetches them now (takes about a minute).
       </p>
 
       <ul className="space-y-3">

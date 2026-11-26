@@ -123,7 +123,7 @@ export async function storeEvents(
     }
     const city = assignCity(ev, source.city_slug);
     if (!city && ev.lat == null) {
-      counts.skipped++; // outside the areas SOMMR covers
+      counts.skipped++; // outside the areas Somer covers
       continue;
     }
     const category = classifyEvent(

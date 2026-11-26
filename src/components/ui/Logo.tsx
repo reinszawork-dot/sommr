@@ -23,7 +23,7 @@ export function Logo({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <SunMark />
-      <span className="text-[15px] font-semibold tracking-[0.22em] text-ink">SOMMR</span>
+      <span className="text-[15px] font-semibold tracking-[0.22em] text-ink">SOMER</span>
     </span>
   );
 }

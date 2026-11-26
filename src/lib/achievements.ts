@@ -1,4 +1,4 @@
-/** Badges users earn as they use SOMMR. Rules are evaluated on the server from real activity. */
+/** Badges users earn as they use Somer. Rules are evaluated on the server from real activity. */
 export interface AchievementDef {
   slug: string;
   title: string;

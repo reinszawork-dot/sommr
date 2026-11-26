@@ -162,7 +162,7 @@ export default async function WhatsOnPage({ searchParams }: PageProps<'/whats-on
       </div>
 
       <p className="mt-10 text-xs leading-relaxed text-ink-3">
-        Events come from Ticketmaster, Quicket, venue calendars and the SOMMR team.{' '}
+        Events come from Ticketmaster, Quicket, venue calendars and the Somer team.{' '}
         {updated ? `Last refreshed ${timeAgo(updated)}. ` : ''}Past events are removed automatically. Always confirm details with the organiser before you go.
       </p>
     </Page>

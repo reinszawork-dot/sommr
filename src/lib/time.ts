@@ -1,5 +1,5 @@
 /**
- * Everything in SOMMR runs on South African Standard Time (UTC+2, no daylight
+ * Everything in Somer runs on South African Standard Time (UTC+2, no daylight
  * saving), regardless of where the server is. Day and week boundaries for
  * challenges, "today" and "this weekend" all use these helpers.
  */

@@ -33,8 +33,8 @@ const SOURCE_LABEL: Record<string, string> = {
   quicket: 'Quicket',
   ical: 'a venue calendar',
   jsonld: 'the organiser’s website',
-  admin: 'the SOMMR team',
-  community: 'a SOMMR member, reviewed by our team',
+  admin: 'the Somer team',
+  community: 'a Somer member, reviewed by our team',
 };
 
 export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
@@ -187,7 +187,7 @@ export default async function EventPage({ params }: PageProps<'/events/[id]'>) {
             </div>
           ) : null}
           <p className="px-1 text-xs leading-relaxed text-ink-3">
-            Listed by {e.source_name && ['ticketmaster', 'quicket', 'ical', 'jsonld'].includes(e.source) ? e.source_name : SOURCE_LABEL[e.source] ?? 'SOMMR'}
+            Listed by {e.source_name && ['ticketmaster', 'quicket', 'ical', 'jsonld'].includes(e.source) ? e.source_name : SOURCE_LABEL[e.source] ?? 'Somer'}
             {e.last_seen_at ? ` · checked ${timeAgo(e.last_seen_at)}` : ` · updated ${timeAgo(e.updated_at)}`}. Details can change — confirm with the organiser.
             {e.source_url && e.source_url !== e.ticket_url ? (
               <>

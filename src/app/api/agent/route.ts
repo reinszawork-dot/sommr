@@ -85,7 +85,7 @@ const placeSchema = z.object({
   description: z.string().trim().max(1000).optional(),
 });
 
-// An events feed SOMMR can import by itself (Admin → Imports); filed disabled until the owner enables it.
+// An events feed Somer can import by itself (Admin → Imports); filed disabled until the owner enables it.
 const sourceSchema = z.object({
   kind: z.literal('source'),
   feed: z.enum(['ical', 'jsonld']),
@@ -101,7 +101,7 @@ export async function GET(req: Request) {
   if (!env.AGENT_SECRET) return apiError(503, 'AGENT_SECRET is not configured.');
   if (!authorised(req)) return apiError(401, 'Unauthorised');
   const list = new URL(req.url).searchParams.get('list');
-  // What's live on SOMMR, for the freshness checker and weekend planner.
+  // What's live on Somer, for the freshness checker and weekend planner.
   if (list === 'events') {
     return json({ events: await query(sql`
       select id, title, starts_at, ends_at, time_tbc, sold_out, venue_name, city_slug, category_slug, price_min, is_free, ticket_url, source_url,

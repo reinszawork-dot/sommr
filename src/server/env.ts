@@ -52,12 +52,12 @@ export const env = {
 
   // Email (password reset). Without it, reset links are printed to the server log in development.
   RESEND_API_KEY: str('RESEND_API_KEY'),
-  EMAIL_FROM: str('EMAIL_FROM') || 'SOMMR <hello@example.com>',
+  EMAIL_FROM: str('EMAIL_FROM') || 'Somer <hello@example.com>',
 
   isProduction: process.env.NODE_ENV === 'production',
 };
 
 /** A polite, generic User-Agent for open-data APIs (no personal details). */
 export function userAgent(): string {
-  return `SOMMR/0.1 (+${env.APP_URL})`;
+  return `Somer/0.1 (+${env.APP_URL})`;
 }

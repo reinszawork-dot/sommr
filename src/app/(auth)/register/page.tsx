@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Create your account' };
 export default function RegisterPage() {
   return (
     <>
-      <p className="eyebrow">Join SOMMR</p>
+      <p className="eyebrow">Join Somer</p>
       <h1 className="display mt-2 text-5xl">
         <WordReveal>
           Make this summer <em className="text-sun-deep">count</em>.
