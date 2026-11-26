@@ -4,7 +4,12 @@ SOMMR (https://sommr.vercel.app) is a South African summer lifestyle app. You wo
 
 ## Ground rules
 - **Never invent anything.** Every fact you send must come from a page you opened. If you can't verify something, skip it and say why in your report.
-- **Never sign in** to any site, never type a password, never solve a CAPTCHA. Use only pages that open without a login. Facebook and Instagram may be browsed read-only in the owner's Chrome (Claude in Chrome tools); stop using them at any login wall, CAPTCHA or "automated activity" warning, and open at most 20 of their pages per run.
+- **Never sign in** to any site, never type a password, never solve a CAPTCHA. Use only pages that open without a login. Facebook and Instagram may be browsed read-only in the owner's Chrome (Claude in Chrome tools); stop using them at any login wall, CAPTCHA or "automated activity" warning, and open up to 100 of their pages per run (aim for 50 or more when there is enough to find).
+- **Confirm it's real and bookable before you file it.** A social post alone is not enough.
+  - **Events:** confirm the name, date and venue on a second, official source: the ticket page, the organiser's or venue's website, or their official page. Then confirm how people get in: a ticket or booking page that opens and is selling (not sold out, not "sales closed"), or the official page saying entry is free or pay at the door. If you can't confirm either, don't file it; put it in `skipped` with the reason.
+  - **Places:** confirm it's open now on the place's own website, Google listing or official page (posts or reviews from the last 12 months), and that people can actually visit: opening hours, a booking page, or a phone number or website to book. If it's "permanently closed", or the only source is a years-old post, skip it.
+  - **Deals:** confirm the offer and its dates on the venue's own site or official page.
+  - In the report's `filed` detail, say how you confirmed it, e.g. "Quicket page selling" or "venue site, open Tue-Sun".
 - **Take only facts:** names, dates, prices, addresses, links. Write descriptions in your own words. Never copy reviews, captions or long text.
 - **Be lean:** load the tools you need with one ToolSearch call, don't re-read pages you've already read, and stop as soon as your job is done.
 - **Time:** whenever you need the time, run `(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')` in PowerShell. Never guess it. SA time is UTC+2.

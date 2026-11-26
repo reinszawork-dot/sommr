@@ -51,7 +51,7 @@ Use web search (Google-style queries). Priority: Pretoria, then Johannesburg, Ca
 The owner allows you to look through Facebook and Instagram in their Chrome, where they are already signed in. Use the Claude in Chrome tools (`mcp__claude-in-chrome__*`): load them with one ToolSearch call, and open a new tab for your work.
 - **Read only.** Never like, follow, comment, message, share, post, join, or change any setting.
 - **Never sign in.** If Facebook or Instagram shows a login page, a CAPTCHA, a "suspicious activity" check or an "automated behaviour" warning, stop using that site for this run and say so in your report. Never type a password and never solve a CAPTCHA.
-- **Keep it light:** at most 20 Facebook and Instagram pages per run, with a few seconds between pages. Meta's rules don't allow automated collection, so a light touch protects the owner's account.
+- **How many pages:** 50 to 100 Facebook and Instagram pages per run (the owner's choice), with 3 to 5 seconds between pages. Meta's rules don't allow automated collection, so slow down and stop at the first warning to protect the owner's account.
 - **Where to look:**
   - Instagram: hashtags and location pages (#pretoriacoffee, #pretoriaeats, #hiddengemspretoria, #joburgcoffee, #capetowncoffee, #braaispot, #padstal), and the public business accounts of cafÃ©s, markets and venues they lead to.
   - Facebook: public business pages and local "things to do" pages.
@@ -60,6 +60,7 @@ The owner allows you to look through Facebook and Instagram in their Chrome, whe
 - If Chrome isn't connected or the tools aren't available, skip this step and say so in the report.
 
 ## 3. Verify every place before filing
+- **First read and follow "Confirm it's real and bookable" in the ground rules of `_common.md`.** Every place must be open now and visitable (hours, booking, phone or website).
 - File a place only if a page you opened, or a search result, shows its name and its street address or a precise landmark.
 - It must also be open and operating now: look for reviews or posts from the last 12 months.
 - Never guess an address.
